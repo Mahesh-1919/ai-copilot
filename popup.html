@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <div class="logo">AS</div>
+      <div class="title">AdShield Lite</div>
+      <button id="settings" title="Settings" aria-label="Open settings">&#9881;</button>
+    </header>
+
+    <div class="status" id="status">Idle</div>
+
+    <div class="actions">
+      <button id="start"  class="primary">Start session</button>
+      <button id="pause"  disabled>Pause</button>
+      <button id="resume" class="primary" hidden>Resume</button>
+      <button id="stop"   class="danger" disabled>End</button>
+    </div>
+
+    <div class="row">
+      <button id="popout" class="ghost" title="Open the floating panel in the active tab. Same effect as the keyboard shortcut or right-click \u2192 Show AdShield panel.">Pop out panel</button>
+      <button id="shortcuts" class="ghost" title="Open chrome://extensions/shortcuts to bind or rebind the toggle hotkey. Use this if Ctrl+Shift+Y conflicts with another extension or app.">Configure shortcut</button>
+    </div>
+
+    <div class="meta" id="meta"></div>
+
+    <div class="hint">
+      Filtering ad and tracker requests in the background. Four ways to
+      open the floating stats panel (any one works, all are invisible
+      during a tab- or window-share):
+      <ul class="trig">
+        <li>The small <strong>AS</strong> circle in the bottom-right of any tab</li>
+        <li><strong>Pop out panel</strong> button above (this popup)</li>
+        <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Y</kbd> in any tab. If
+          it doesn&rsquo;t fire, click <strong>Configure shortcut</strong> &mdash;
+          Chrome silently drops bindings that clash with other apps.</li>
+        <li>Right-click anywhere on the page &rarr; <em>Show AdShield panel</em></li>
+      </ul>
+      Use <strong>Pause</strong> to suspend filtering on a noisy page,
+      <strong>Resume</strong> to re-enable, <strong>End</strong> to stop
+      the shield.
+    </div>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

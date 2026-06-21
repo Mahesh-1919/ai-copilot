@@ -1,0 +1,27 @@
+# Local secrets / personal data - never commit
+api-keys.txt
+api-keys.json
+resume.txt
+resume.md
+job-description.txt
+job-description.md
+jd.txt
+jd.md
+*.env
+.env
+.env.*
+secrets/
+*.key
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Build artifacts
+dist/
+build/
+*.zip
+node_modules/
