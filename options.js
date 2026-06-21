@@ -106,8 +106,8 @@ function readKeysFromUI() {
 
 function fmtCooldown(ms) {
   if (ms <= 0) return "ready";
-  if (ms < 60_000)        return `${Math.ceil(ms / 1000)}s`;
-  if (ms < 60 * 60_000)   return `${Math.floor(ms / 60_000)}m ${Math.ceil((ms % 60_000) / 1000)}s`;
+  if (ms < 60_000) return `${Math.ceil(ms / 1000)}s`;
+  if (ms < 60 * 60_000) return `${Math.floor(ms / 60_000)}m ${Math.ceil((ms % 60_000) / 1000)}s`;
   return `${Math.floor(ms / (60 * 60_000))}h`;
 }
 
@@ -150,8 +150,8 @@ async function refreshKeyStatuses() {
 }
 
 const STT_DEFAULT_MODELS = {
-  "assemblyai":     "u3-rt-pro",
-  "groq-whisper":   "whisper-large-v3-turbo",
+  "assemblyai": "u3-rt-pro",
+  "groq-whisper": "whisper-large-v3-turbo",
   "openai-whisper": "whisper-1",
 };
 
@@ -169,7 +169,7 @@ function fillDatalist(id, items) {
 function refreshModelHints() {
   const provider = el("provider").value;
   const preset = PROVIDER_PRESETS[provider];
-  fillDatalist("model-list",        preset?.models);
+  fillDatalist("model-list", preset?.models);
   fillDatalist("vision-model-list", preset?.visionModels);
   el("baseUrl-row").style.display = provider === "openai-compatible" ? "" : "none";
 }
@@ -180,10 +180,10 @@ function refreshFallbackHints() {
   // If OpenRouter and we have a fresh live list cached, prefer it over the
   // static (potentially-stale) curated default.
   if (provider === "openrouter" && openRouterFreeCache) {
-    fillDatalist("fallback-model-list",  openRouterFreeCache.models);
+    fillDatalist("fallback-model-list", openRouterFreeCache.models);
     fillDatalist("fallback-vision-list", openRouterFreeCache.visionModels);
   } else {
-    fillDatalist("fallback-model-list",  preset?.models);
+    fillDatalist("fallback-model-list", preset?.models);
     fillDatalist("fallback-vision-list", preset?.visionModels);
   }
   el("fallbackBaseUrl-row").style.display = provider === "openai-compatible" ? "" : "none";
@@ -197,7 +197,7 @@ async function refreshOpenRouterModels() {
   try {
     const lists = await fetchOpenRouterFreeModels();
     openRouterFreeCache = lists;
-    fillDatalist("fallback-model-list",  lists.models);
+    fillDatalist("fallback-model-list", lists.models);
     fillDatalist("fallback-vision-list", lists.visionModels);
     flash("refreshFallbackResult", `OK - ${lists.models.length} free models, ${lists.visionModels.length} with vision.`, "ok");
   } catch (e) {
@@ -248,7 +248,7 @@ async function save() {
   // Persist the multi-key list. We also blank out the legacy single-key
   // field so it doesn't shadow the new pool on later loads.
   patch.apiKeys = readKeysFromUI();
-  patch.apiKey  = "";
+  patch.apiKey = "";
   await setConfig(patch);
   flash("saveResult", "Saved", "ok");
   refreshKeyStatuses();
@@ -283,7 +283,7 @@ el("fallbackProvider").addEventListener("change", () => {
     el("fallbackModel").value = "";
   }
   if (provider === "openrouter") {
-    refreshOpenRouterModels().catch(() => {});
+    refreshOpenRouterModels().catch(() => { });
   }
 });
 
@@ -408,7 +408,7 @@ el("testFallback").addEventListener("click", async () => {
     const fbCfg = {
       provider: cfg.fallbackProvider,
       apiKey,
-      model:   cfg.fallbackModel?.trim() || preset?.models?.[0],
+      model: cfg.fallbackModel?.trim() || preset?.models?.[0],
       baseUrl: cfg.fallbackBaseUrl?.trim() || preset?.baseUrl || "",
     };
     const txt = await pingProvider(fbCfg);

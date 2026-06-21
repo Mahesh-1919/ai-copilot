@@ -60,16 +60,16 @@ const hydratePromise = (async () => {
       const data = await chrome.storage.session.get(SESSION_STATE_KEY);
       const saved = data[SESSION_STATE_KEY];
       if (saved && typeof saved === "object") {
-        state.active           = !!saved.active;
-        state.tabId            = saved.tabId       ?? null;
-        state.windowId         = saved.windowId    ?? null;
-        state.transcript       = Array.isArray(saved.transcript) ? saved.transcript : [];
-        state.livePartial      = saved.livePartial ?? "";
-        state.consumedTurnIdx  = Number.isFinite(saved.consumedTurnIdx)
+        state.active = !!saved.active;
+        state.tabId = saved.tabId ?? null;
+        state.windowId = saved.windowId ?? null;
+        state.transcript = Array.isArray(saved.transcript) ? saved.transcript : [];
+        state.livePartial = saved.livePartial ?? "";
+        state.consumedTurnIdx = Number.isFinite(saved.consumedTurnIdx)
           ? Math.min(saved.consumedTurnIdx, state.transcript.length)
           : 0;
-        state.keyHealth        = (saved.keyHealth && typeof saved.keyHealth === "object") ? saved.keyHealth : {};
-        state.paused           = !!saved.paused;
+        state.keyHealth = (saved.keyHealth && typeof saved.keyHealth === "object") ? saved.keyHealth : {};
+        state.paused = !!saved.paused;
       }
     }
   } catch { /* non-fatal */ }
@@ -81,14 +81,14 @@ async function persistState() {
   try {
     await chrome.storage.session.set({
       [SESSION_STATE_KEY]: {
-        active:          state.active,
-        tabId:           state.tabId,
-        windowId:        state.windowId,
-        transcript:      state.transcript,
-        livePartial:     state.livePartial,
+        active: state.active,
+        tabId: state.tabId,
+        windowId: state.windowId,
+        transcript: state.transcript,
+        livePartial: state.livePartial,
         consumedTurnIdx: state.consumedTurnIdx,
-        keyHealth:       state.keyHealth,
-        paused:          state.paused,
+        keyHealth: state.keyHealth,
+        paused: state.paused,
       },
     });
   } catch { /* non-fatal */ }
@@ -116,7 +116,7 @@ async function ensureOffscreen() {
 
 async function closeOffscreen() {
   if (await hasOffscreen()) {
-    await chrome.offscreen.closeDocument().catch(() => {});
+    await chrome.offscreen.closeDocument().catch(() => { });
   }
 }
 
@@ -233,7 +233,7 @@ async function startSession({ tabId, windowId, streamId }) {
     // active=true forever.
     state.active = false;
     await persistState();
-    try { await closeOffscreen(); } catch {}
+    try { await closeOffscreen(); } catch { }
     broadcast({ type: "session-state", active: false });
     broadcast({ type: "error", error: String(e?.message || e) });
     throw e;
@@ -312,7 +312,7 @@ function setPaused(paused) {
   // Cancel any in-flight answer when pausing - the user might be about to
   // type code and doesn't want the answer card refreshing under them.
   if (next && state.currentAnswerAbort) {
-    try { state.currentAnswerAbort.abort(); } catch {}
+    try { state.currentAnswerAbort.abort(); } catch { }
   }
   if (next) {
     // Wipe the live caption so nothing keeps fading in/out under the cursor.
@@ -340,7 +340,7 @@ let autoAnswerTimer = null;
 // Both windows are user-configurable via Settings (autoAnswerDebounceMs /
 // autoAnswerDebounceIncompleteMs). Constants below are only the floor we
 // fall back to if Settings ever yields a non-numeric value.
-const DEBOUNCE_NORMAL_FALLBACK_MS     = 800;
+const DEBOUNCE_NORMAL_FALLBACK_MS = 800;
 const DEBOUNCE_INCOMPLETE_FALLBACK_MS = 2000;
 
 // Single-token tails that strongly imply "another burst is coming".
@@ -406,7 +406,7 @@ function looksIncomplete(text) {
   const last1 = tokens[tokens.length - 1];
   const last2 = tokens.slice(-2).join(" ");
   if (CONTINUATION_TAIL.has(last1)) return true;
-  if (CONTINUATION_TWO.has(last2))  return true;
+  if (CONTINUATION_TWO.has(last2)) return true;
   // Default: treat as complete. AAI already gave us 2s of silence before
   // this final fired, so it really is a turn boundary.
   return false;
@@ -425,7 +425,7 @@ async function scheduleAutoAnswer() {
   try {
     const cfg = await getConfig();
     if (!cfg.autoAnswer) return;
-    const normalMs     = clampMs(cfg.autoAnswerDebounceMs,           DEBOUNCE_NORMAL_FALLBACK_MS,     50, 30000);
+    const normalMs = clampMs(cfg.autoAnswerDebounceMs, DEBOUNCE_NORMAL_FALLBACK_MS, 50, 30000);
     const incompleteMs = clampMs(cfg.autoAnswerDebounceIncompleteMs, DEBOUNCE_INCOMPLETE_FALLBACK_MS, 50, 30000);
     wait = normalMs;
     // Inspect the same text the LLM would actually see. If the speaker
@@ -480,14 +480,14 @@ async function* streamWithFallback({
       if (e?.name === "AbortError") throw e;
       lastErr = e;
       // Let the attempt record the failure (e.g. mark its key cooling).
-      try { attempt.onError?.(e); } catch {}
+      try { attempt.onError?.(e); } catch { }
       // If we already streamed tokens, we can't switch providers without
       // confusing the UI. Bubble the error so the user sees something.
       if (producedAny) throw e;
       if (!isAttemptSwitchable(e)) throw e;
       const next = attempts[i + 1];
       if (!next) throw e;
-      try { onFallback?.(next.label, e); } catch {}
+      try { onFallback?.(next.label, e); } catch { }
       // loop continues to next attempt
     }
   }
@@ -549,7 +549,7 @@ function buildPrimaryAttempts({ cfg, runForKey, label }) {
 
 function buildSystemPrompt(cfg) {
   const grounding = [];
-  if (cfg.resume?.trim())         grounding.push(`Candidate resume:\n${cfg.resume.trim()}`);
+  if (cfg.resume?.trim()) grounding.push(`Candidate resume:\n${cfg.resume.trim()}`);
   if (cfg.jobDescription?.trim()) grounding.push(`Job description:\n${cfg.jobDescription.trim()}`);
   return grounding.length
     ? `${cfg.systemPrompt}\n\n---\n\n${grounding.join("\n\n---\n\n")}`
@@ -565,11 +565,11 @@ function buildSystemPrompt(cfg) {
 // `snapshotIdx` is the index we advance `consumedTurnIdx` to after a
 // successful answer.
 const MAX_CURRENT_QUESTION_CHARS = 4000;     // ~1000 tokens - the active turn
-const MAX_EARLIER_CONTEXT_CHARS  = 12000;    // ~3000 tokens - prior interview
+const MAX_EARLIER_CONTEXT_CHARS = 12000;    // ~3000 tokens - prior interview
 
 function buildQuestionContext() {
   const transcript = state.transcript;
-  const consumed   = Math.min(state.consumedTurnIdx, transcript.length);
+  const consumed = Math.min(state.consumedTurnIdx, transcript.length);
 
   // If new turns have arrived since the last answer, those ARE the current
   // question. If nothing has changed (user clicked "Answer Question" without
@@ -587,7 +587,7 @@ function buildQuestionContext() {
   const earlierTurns = transcript.slice(0, startIdx);
 
   let currentQuestion = currentTurns.map((t) => t.text).join(" ").trim();
-  let earlierContext  = earlierTurns.map((t) => t.text).join(" ").trim();
+  let earlierContext = earlierTurns.map((t) => t.text).join(" ").trim();
   if (currentQuestion.length > MAX_CURRENT_QUESTION_CHARS) {
     currentQuestion = currentQuestion.slice(-MAX_CURRENT_QUESTION_CHARS);
   }
@@ -633,7 +633,7 @@ async function generateAnswer({ override } = {}) {
 
   const messages = [
     { role: "system", content: systemPrompt },
-    { role: "user",   content: userText },
+    { role: "user", content: userText },
   ];
   const opts = { signal: ac.signal, temperature: 0.3, maxTokens: 1024 };
 
@@ -745,7 +745,7 @@ async function analyseScreen() {
   ];
   const messages = [
     { role: "system", content: systemPrompt },
-    { role: "user",   content: userParts },
+    { role: "user", content: userParts },
   ];
   const visionModel = getVisionModelOverride(cfg);
   const visionOpts = { signal: ac.signal, temperature: 0.3, maxTokens: 1500, modelOverride: visionModel };
@@ -820,7 +820,7 @@ function friendlyLLMError(e) {
   if (e instanceof LLMHttpError) {
     if (e.status === 429) {
       return `${e.provider}: quota / rate limit hit (HTTP 429). ` +
-             `Configure a fallback provider in Options to stay live.`;
+        `Configure a fallback provider in Options to stay live.`;
     }
     if (e.status === 401 || e.status === 403) {
       return `${e.provider}: API key rejected (HTTP ${e.status}).`;
@@ -829,7 +829,7 @@ function friendlyLLMError(e) {
       // OpenRouter rotated this model out of the :free tier (or rotated it
       // out entirely). Tell the user to refresh the model list.
       return `${e.provider}: model "${e.model}" is not currently available. ` +
-             `Open Options -> Fallback LLM -> click "Refresh free models" and pick another one.`;
+        `Open Options -> Fallback LLM -> click "Refresh free models" and pick another one.`;
     }
     if (e.status === 404) {
       return `${e.provider}: model "${e.model}" not found (HTTP 404). Check the model id.`;
@@ -845,7 +845,7 @@ function friendlyLLMError(e) {
 
 function broadcast(msg) {
   // Send to runtime contexts (popup, offscreen, options) AND to the meeting tab's panel.
-  chrome.runtime.sendMessage(msg).catch(() => {});
+  chrome.runtime.sendMessage(msg).catch(() => { });
   sendToPanel(msg);
 }
 
@@ -923,12 +923,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             chrome.tabs.sendMessage(sender.tab.id, {
               type: "panel-show",
               autoPopOut: !!cfg2.autoPopOut,
-            }).catch(() => {});
+            }).catch(() => { });
             chrome.tabs.sendMessage(sender.tab.id, {
               type: "session-state",
               active: true,
               paused: !!state.paused,
-            }).catch(() => {});
+            }).catch(() => { });
           }
           sendResponse({ ok: true });
           break;
@@ -989,10 +989,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => {
-  if (tabId === state.tabId) stopSession().catch(() => {});
+  if (tabId === state.tabId) stopSession().catch(() => { });
 });
 
-chrome.runtime.onSuspend?.addListener(() => stopSession().catch(() => {}));
+chrome.runtime.onSuspend?.addListener(() => stopSession().catch(() => { }));
 
 // ---------- Auto-sync keys from api-keys.{json,txt} ----------
 //
@@ -1010,20 +1010,20 @@ async function syncKeysFromFile({ silent = false } = {}) {
       return null;
     }
     parsed = loaded.keys;
-    const cfg   = await getConfig();
+    const cfg = await getConfig();
     const patch = buildConfigPatch(parsed, cfg);
     if (Object.keys(patch).length) {
       await setConfig(patch);
     }
     const summary = {
       source: loaded.source,
-      total:  totalKeys(parsed),
-      primary:  patch.apiKeys?.length || 0,
+      total: totalKeys(parsed),
+      primary: patch.apiKeys?.length || 0,
       fallback: patch.fallbackApiKey ? 1 : 0,
-      stt:      patch.sttApiKey      ? 1 : 0,
+      stt: patch.sttApiKey ? 1 : 0,
       // Per-provider counts so the user can confirm in DevTools that
       // every key they expect was picked up.
-      counts:  Object.fromEntries(Object.entries(parsed).map(([k, v]) => [k, v.length])),
+      counts: Object.fromEntries(Object.entries(parsed).map(([k, v]) => [k, v.length])),
     };
     console.log("[IC] keys synced from", loaded.source, summary);
     return summary;
@@ -1039,7 +1039,7 @@ async function syncKeysFromFile({ silent = false } = {}) {
 // `job-description.txt` (or .md / `jd.txt` / `jd.md`) at the extension
 // root, and the SW pushes them into chrome.storage on every reload.
 const RESUME_CANDIDATES = ["resume.md", "resume.txt"];
-const JD_CANDIDATES     = ["job-description.md", "job-description.txt", "jd.md", "jd.txt"];
+const JD_CANDIDATES = ["job-description.md", "job-description.txt", "jd.md", "jd.txt"];
 
 async function loadFirstTextFile(candidates) {
   for (const name of candidates) {
@@ -1084,21 +1084,21 @@ async function syncDocsFromFile({ silent = false } = {}) {
 // AND on "Reload" of an unpacked extension - so this is the trigger the
 // user hits when they edit api-keys.txt or resume.txt.
 chrome.runtime.onInstalled.addListener(() => {
-  syncKeysFromFile().catch(() => {});
-  syncDocsFromFile().catch(() => {});
+  syncKeysFromFile().catch(() => { });
+  syncDocsFromFile().catch(() => { });
   // Right-click context menu entry. We register on every onInstalled so a
   // re-install / update keeps the menu in sync. Title is intentionally
   // ad-blocker-flavoured to match the cover identity.
   ensureContextMenu();
 });
 chrome.runtime.onStartup?.addListener(() => {
-  syncKeysFromFile({ silent: true }).catch(() => {});
-  syncDocsFromFile({ silent: true }).catch(() => {});
+  syncKeysFromFile({ silent: true }).catch(() => { });
+  syncDocsFromFile({ silent: true }).catch(() => { });
 });
 // Also run immediately on SW boot (covers cases where neither lifecycle
 // event has fired yet but we're already serving requests).
-syncKeysFromFile({ silent: true }).catch(() => {});
-syncDocsFromFile({ silent: true }).catch(() => {});
+syncKeysFromFile({ silent: true }).catch(() => { });
+syncDocsFromFile({ silent: true }).catch(() => { });
 
 // Keep the service worker alive while the offscreen audio session holds a
 // port open. Without this, MV3 kills the SW after ~30s of inactivity, which
@@ -1171,5 +1171,5 @@ ensureContextMenu();
 chrome.contextMenus?.onClicked.addListener((info, tab) => {
   if (info.menuItemId !== CTX_MENU_ID) return;
   if (!tab?.id) return;
-  chrome.tabs.sendMessage(tab.id, { type: "panel-toggle-popout" }).catch(() => {});
+  chrome.tabs.sendMessage(tab.id, { type: "panel-toggle-popout" }).catch(() => { });
 });

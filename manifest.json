@@ -28,10 +28,10 @@
   "commands": {
     "toggle-panel": {
       "suggested_key": {
-        "default":  "Ctrl+Shift+Y",
-        "mac":      "Command+Shift+Y",
-        "windows":  "Ctrl+Shift+Y",
-        "linux":    "Ctrl+Shift+Y",
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y",
+        "windows": "Ctrl+Shift+Y",
+        "linux": "Ctrl+Shift+Y",
         "chromeos": "Ctrl+Shift+Y"
       },
       "description": "Toggle the floating panel"
@@ -43,22 +43,33 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content/panel.js"],
-      "css": ["content/panel.css"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content/panel.js"
+      ],
+      "css": [
+        "content/panel.css"
+      ],
       "run_at": "document_idle",
       "all_frames": false
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["content/panel.js", "content/panel.css"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "content/panel.js",
+        "content/panel.css"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "icons": {
-    "16":  "icons/icon16.png",
-    "48":  "icons/icon48.png",
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   }
 }

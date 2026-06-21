@@ -1,14 +1,14 @@
 import { getConfig } from "./lib/storage.js";
 
-const statusEl    = document.getElementById("status");
-const startBtn    = document.getElementById("start");
-const pauseBtn    = document.getElementById("pause");
-const resumeBtn   = document.getElementById("resume");
-const stopBtn     = document.getElementById("stop");
-const popoutBtn   = document.getElementById("popout");
+const statusEl = document.getElementById("status");
+const startBtn = document.getElementById("start");
+const pauseBtn = document.getElementById("pause");
+const resumeBtn = document.getElementById("resume");
+const stopBtn = document.getElementById("stop");
+const popoutBtn = document.getElementById("popout");
 const shortcutsBtn = document.getElementById("shortcuts");
 const settingsBtn = document.getElementById("settings");
-const metaEl      = document.getElementById("meta");
+const metaEl = document.getElementById("meta");
 
 function setStatus(text, kind = "") {
   statusEl.textContent = text;
@@ -29,12 +29,12 @@ async function refresh() {
   } else {
     setStatus("Idle");
   }
-  startBtn.disabled  = active;
-  stopBtn.disabled   = !active;
-  pauseBtn.disabled  = !active || paused;
+  startBtn.disabled = active;
+  stopBtn.disabled = !active;
+  pauseBtn.disabled = !active || paused;
   resumeBtn.disabled = !active || !paused;
-  pauseBtn.hidden    = paused;
-  resumeBtn.hidden   = !paused;
+  pauseBtn.hidden = paused;
+  resumeBtn.hidden = !paused;
 
   if (!cfg.apiKeys?.length) {
     setStatus("No LLM API key configured", "error");
@@ -58,14 +58,14 @@ startBtn.addEventListener("click", async () => {
     // return a stale id whose subsequent getUserMedia call rejects with
     // "Could not start audio source" - which is the classic "second Start
     // does nothing" symptom.
-    await chrome.runtime.sendMessage({ type: "stop-session" }).catch(() => {});
+    await chrome.runtime.sendMessage({ type: "stop-session" }).catch(() => { });
 
     // getMediaStreamId must be called from a user-gesture context (popup is one).
     const streamId = await new Promise((resolve, reject) => {
       chrome.tabCapture.getMediaStreamId({ targetTabId: tab.id }, (id) => {
         if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-        else if (!id)                 reject(new Error("No streamId returned by chrome.tabCapture"));
-        else                           resolve(id);
+        else if (!id) reject(new Error("No streamId returned by chrome.tabCapture"));
+        else resolve(id);
       });
     });
 
@@ -83,7 +83,7 @@ startBtn.addEventListener("click", async () => {
     console.error("[IC popup] start failed:", e);
     setStatus(`Start failed: ${e.message || e}`, "error");
     startBtn.disabled = false;
-    stopBtn.disabled  = true;
+    stopBtn.disabled = true;
   }
 });
 
@@ -155,7 +155,7 @@ settingsBtn.addEventListener("click", () => {
 
 chrome.runtime.onMessage.addListener((m) => {
   if (m?.type === "session-state") refresh();
-  if (m?.type === "error")         setStatus(m.error, "error");
+  if (m?.type === "error") setStatus(m.error, "error");
 });
 
 refresh();

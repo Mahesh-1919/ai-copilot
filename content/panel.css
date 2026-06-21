@@ -2,20 +2,21 @@
    are isolated with a unique id prefix and `all: initial` on the root to prevent
    site CSS bleed-through. */
 
-#ic-root, #ic-root * {
+#ic-root,
+#ic-root * {
   box-sizing: border-box;
 }
 
 #ic-root {
-  --ic-bg:        #0e1218;
-  --ic-card:      #151b25;
-  --ic-card-2:    #1c2330;
-  --ic-fg:        #e9eef5;
-  --ic-muted:     #8a93a0;
-  --ic-accent:    #7c5cff;
-  --ic-accent-2:  #4ee0a8;
-  --ic-danger:    #ff5d5d;
-  --ic-border:    #232a35;
+  --ic-bg: #0e1218;
+  --ic-card: #151b25;
+  --ic-card-2: #1c2330;
+  --ic-fg: #e9eef5;
+  --ic-muted: #8a93a0;
+  --ic-accent: #7c5cff;
+  --ic-accent-2: #4ee0a8;
+  --ic-danger: #ff5d5d;
+  --ic-border: #232a35;
 
   position: fixed !important;
   top: 12px;
@@ -23,17 +24,29 @@
   transform: translateX(-50%);
   width: 620px;
   max-width: calc(100vw - 24px);
-  z-index: 2147483647 !important;     /* MAX_INT - beat any Meet/Zoom overlay */
-  isolation: isolate;                 /* own stacking context */
-  pointer-events: auto !important;    /* never inherit pointer-events: none */
+  z-index: 2147483647 !important;
+  /* MAX_INT - beat any Meet/Zoom overlay */
+  isolation: isolate;
+  /* own stacking context */
+  pointer-events: auto !important;
+  /* never inherit pointer-events: none */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
   font-size: 13px;
   line-height: 1.5;
   color: var(--ic-fg);
 }
-#ic-root[hidden] { display: none !important; }
-#ic-root *      { pointer-events: auto !important; }
-#ic-root button { pointer-events: auto !important; }
+
+#ic-root[hidden] {
+  display: none !important;
+}
+
+#ic-root * {
+  pointer-events: auto !important;
+}
+
+#ic-root button {
+  pointer-events: auto !important;
+}
 
 /* ------------- Header bar ------------- */
 #ic-root .ic-bar {
@@ -49,6 +62,7 @@
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(6px);
 }
+
 #ic-root .ic-logo {
   width: 22px;
   height: 22px;
@@ -61,34 +75,57 @@
   place-items: center;
   flex: 0 0 auto;
 }
+
 #ic-root .ic-name {
   font-weight: 700;
   font-size: 12.5px;
   letter-spacing: 0.02em;
 }
-#ic-root .ic-spacer { flex: 1; }
+
+#ic-root .ic-spacer {
+  flex: 1;
+}
+
 #ic-root .ic-timer {
   font-variant-numeric: tabular-nums;
   font-size: 12px;
   color: var(--ic-muted);
   padding: 0 6px;
 }
+
 #ic-root .ic-dot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
   background: #555;
 }
+
 #ic-root .ic-dot.ic-active {
   background: var(--ic-accent-2);
   box-shadow: 0 0 0 3px rgba(78, 224, 168, 0.18);
   animation: ic-pulse 1.6s infinite;
 }
-#ic-root .ic-dot.ic-error  { background: var(--ic-danger); }
-#ic-root .ic-dot.ic-paused { background: #ffb86c; box-shadow: 0 0 0 3px rgba(255, 184, 108, 0.18); animation: none; }
+
+#ic-root .ic-dot.ic-error {
+  background: var(--ic-danger);
+}
+
+#ic-root .ic-dot.ic-paused {
+  background: #ffb86c;
+  box-shadow: 0 0 0 3px rgba(255, 184, 108, 0.18);
+  animation: none;
+}
+
 @keyframes ic-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(78, 224, 168, 0.4); }
-  50%      { box-shadow: 0 0 0 6px rgba(78, 224, 168, 0); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(78, 224, 168, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(78, 224, 168, 0);
+  }
 }
 
 /* Resume button - same green-ish accent as primary so it's the obvious
@@ -100,8 +137,14 @@
   color: #0a0d12;
   font-weight: 700;
 }
-#ic-root #ic-resume:hover { filter: brightness(1.05); }
-#ic-root [hidden] { display: none !important; }
+
+#ic-root #ic-resume:hover {
+  filter: brightness(1.05);
+}
+
+#ic-root [hidden] {
+  display: none !important;
+}
 
 #ic-root button {
   font: inherit;
@@ -114,16 +157,31 @@
   padding: 5px 10px;
   letter-spacing: 0.01em;
 }
-#ic-root button:hover { background: #232b3a; }
-#ic-root button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+#ic-root button:hover {
+  background: #232b3a;
+}
+
+#ic-root button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 #ic-root button.ic-primary {
   background: linear-gradient(135deg, var(--ic-accent), #5d39ff);
   border: 0;
   color: #fff;
   font-weight: 600;
 }
-#ic-root button.ic-primary:hover { filter: brightness(1.1); }
-#ic-root button.ic-danger { color: var(--ic-danger); border-color: rgba(255, 93, 93, 0.4); }
+
+#ic-root button.ic-primary:hover {
+  filter: brightness(1.1);
+}
+
+#ic-root button.ic-danger {
+  color: var(--ic-danger);
+  border-color: rgba(255, 93, 93, 0.4);
+}
 
 /* ------------- Action row ------------- */
 #ic-root .ic-actions {
@@ -137,10 +195,17 @@
   border: 1px solid var(--ic-border);
   border-top: 0;
   border-radius: 0 0 12px 12px;
-  margin-top: 0;                /* was -8px - removed to avoid overlapping bar buttons */
+  margin-top: 0;
+  /* was -8px - removed to avoid overlapping bar buttons */
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
 }
-#ic-root .ic-actions .ic-spacer { font-size: 11px; color: var(--ic-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+#ic-root .ic-actions .ic-spacer {
+  font-size: 11px;
+  color: var(--ic-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
 
 /* ------------- Live caption ------------- */
 #ic-root .ic-live {
@@ -154,7 +219,11 @@
   font-style: italic;
   display: none;
 }
-#ic-root .ic-live[data-visible="1"] { display: block; }
+
+#ic-root .ic-live[data-visible="1"] {
+  display: block;
+}
+
 #ic-root .ic-live::before {
   content: "live";
   font-style: normal;
@@ -182,7 +251,11 @@
   max-height: 60vh;
   overflow: auto;
 }
-#ic-root .ic-card[data-visible="1"] { display: block; }
+
+#ic-root .ic-card[data-visible="1"] {
+  display: block;
+}
+
 #ic-root .ic-card .ic-close {
   position: absolute;
   top: 4px;
@@ -195,7 +268,11 @@
   padding: 2px 8px;
   border-radius: 999px;
 }
-#ic-root .ic-card .ic-close:hover { color: var(--ic-fg); }
+
+#ic-root .ic-card .ic-close:hover {
+  color: var(--ic-fg);
+}
+
 #ic-root .ic-summary {
   font-size: 12px;
   color: var(--ic-muted);
@@ -203,13 +280,18 @@
   font-style: italic;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 1px rgba(0, 0, 0, 0.9);
 }
+
 #ic-root .ic-summary::before {
   content: "Summarized question: ";
   font-style: normal;
   color: var(--ic-accent-2);
   font-weight: 600;
 }
-#ic-root .ic-summary[data-empty="1"] { display: none; }
+
+#ic-root .ic-summary[data-empty="1"] {
+  display: none;
+}
+
 #ic-root .ic-heading {
   font-size: 16px;
   font-weight: 700;
@@ -217,7 +299,11 @@
   margin-bottom: 6px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.95);
 }
-#ic-root .ic-heading[data-empty="1"] { display: none; }
+
+#ic-root .ic-heading[data-empty="1"] {
+  display: none;
+}
+
 #ic-root .ic-body {
   font-size: 14px;
   line-height: 1.65;
@@ -226,15 +312,37 @@
      is floating over a bright editor or website. */
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.9),
-    0 0 2px  rgba(0, 0, 0, 0.95),
-    0 0 6px  rgba(0, 0, 0, 0.6);
+    0 0 2px rgba(0, 0, 0, 0.95),
+    0 0 6px rgba(0, 0, 0, 0.6);
 }
-#ic-root .ic-body p { margin: 0 0 10px; }
-#ic-root .ic-body p:last-child { margin-bottom: 0; }
-#ic-root .ic-body strong { font-weight: 700; color: var(--ic-fg); }
-#ic-root .ic-body em { font-style: italic; }
-#ic-root .ic-body ul, #ic-root .ic-body ol { margin: 6px 0 10px 20px; padding: 0; }
-#ic-root .ic-body li { margin: 0 0 4px; }
+
+#ic-root .ic-body p {
+  margin: 0 0 10px;
+}
+
+#ic-root .ic-body p:last-child {
+  margin-bottom: 0;
+}
+
+#ic-root .ic-body strong {
+  font-weight: 700;
+  color: var(--ic-fg);
+}
+
+#ic-root .ic-body em {
+  font-style: italic;
+}
+
+#ic-root .ic-body ul,
+#ic-root .ic-body ol {
+  margin: 6px 0 10px 20px;
+  padding: 0;
+}
+
+#ic-root .ic-body li {
+  margin: 0 0 4px;
+}
+
 #ic-root .ic-body code {
   font-family: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
   background: rgba(12, 16, 24, 0.78);
@@ -244,6 +352,7 @@
   font-size: 12px;
   text-shadow: none;
 }
+
 #ic-root .ic-body pre {
   font-family: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
   /* Code stays on a translucent dark backdrop so it remains readable while
@@ -291,15 +400,32 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   pointer-events: auto !important;
 }
-#ic-badge[data-visible="1"] { display: grid; }
-#ic-badge:hover { opacity: 1; filter: brightness(1.1); }
+
+#ic-badge[data-visible="1"] {
+  display: grid;
+}
+
+#ic-badge:hover {
+  opacity: 1;
+  filter: brightness(1.1);
+}
+
 #ic-badge.ic-pulse {
-  animation: ic-badge-pulse 1.4s ease-in-out 0s 4;  /* 4 pulses then idle */
+  animation: ic-badge-pulse 1.4s ease-in-out 0s 4;
+  /* 4 pulses then idle */
   opacity: 1;
 }
+
 @keyframes ic-badge-pulse {
-  0%, 100% { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 0 0 0   rgba(78, 224, 168, 0.45); }
-  50%      { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 0 0 8px rgba(78, 224, 168, 0); }
+
+  0%,
+  100% {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 0 0 0 rgba(78, 224, 168, 0.45);
+  }
+
+  50% {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 0 0 8px rgba(78, 224, 168, 0);
+  }
 }
 
 /* ------------- Spinner ------------- */
@@ -314,7 +440,12 @@
   margin-left: 6px;
   vertical-align: middle;
 }
-@keyframes ic-spin { to { transform: rotate(360deg); } }
+
+@keyframes ic-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* ------------- Errors / info banner ------------- */
 #ic-root .ic-err {
@@ -327,7 +458,11 @@
   font-size: 12px;
   display: none;
 }
-#ic-root .ic-err[data-visible="1"] { display: block; }
+
+#ic-root .ic-err[data-visible="1"] {
+  display: block;
+}
+
 #ic-root .ic-err[data-kind="info"] {
   background: rgba(124, 92, 255, 0.10);
   border-color: rgba(124, 92, 255, 0.35);
@@ -369,6 +504,7 @@
   -webkit-backdrop-filter: blur(20px) saturate(140%);
   backdrop-filter: blur(20px) saturate(140%);
 }
+
 #ic-root.ic-pip .ic-bar,
 #ic-root.ic-pip .ic-actions {
   background: rgba(20, 26, 36, 0.85) !important;
@@ -377,8 +513,17 @@
   border-color: rgba(255, 255, 255, 0.10);
   border-radius: 10px;
 }
-#ic-root.ic-pip .ic-actions  { border-top: 1px solid rgba(255, 255, 255, 0.10); margin-top: 0; }
-#ic-root.ic-pip .ic-card     { flex: 1 1 auto; max-height: none; background: transparent; }
+
+#ic-root.ic-pip .ic-actions {
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  margin-top: 0;
+}
+
+#ic-root.ic-pip .ic-card {
+  flex: 1 1 auto;
+  max-height: none;
+  background: transparent;
+}
 
 /* Buttons in PiP: slightly translucent so the panel reads as one
    coherent frosted unit, but solid enough that the click target is
@@ -387,7 +532,11 @@
   background: rgba(28, 35, 48, 0.75);
   border-color: rgba(255, 255, 255, 0.10);
 }
-#ic-root.ic-pip button:hover { background: rgba(40, 48, 65, 0.85); }
+
+#ic-root.ic-pip button:hover {
+  background: rgba(40, 48, 65, 0.85);
+}
+
 #ic-root.ic-pip button.ic-primary {
   background: linear-gradient(135deg, rgba(124, 92, 255, 0.92), rgba(93, 57, 255, 0.92));
 }
@@ -400,10 +549,11 @@
 #ic-root.ic-pip .ic-heading,
 #ic-root.ic-pip .ic-summary {
   text-shadow:
-    0 1px 2px  rgba(0, 0, 0, 0.95),
-    0 0 3px   rgba(0, 0, 0, 0.95),
-    0 0 1px   rgba(0, 0, 0, 1);
+    0 1px 2px rgba(0, 0, 0, 0.95),
+    0 0 3px rgba(0, 0, 0, 0.95),
+    0 0 1px rgba(0, 0, 0, 1);
 }
+
 #ic-root.ic-pip .ic-body p,
 #ic-root.ic-pip .ic-body li,
 #ic-root.ic-pip .ic-heading {

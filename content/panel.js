@@ -153,11 +153,11 @@
 
   function pipSupported() {
     return typeof window.documentPictureInPicture !== "undefined"
-        && typeof window.documentPictureInPicture.requestWindow === "function";
+      && typeof window.documentPictureInPicture.requestWindow === "function";
   }
 
   async function popOut() {
-    if (pipWin) { try { pipWin.focus(); } catch {} return; }
+    if (pipWin) { try { pipWin.focus(); } catch { } return; }
     if (!pipSupported()) {
       setError("Pop-out needs Chrome 116+ (Document Picture-in-Picture).");
       return;
@@ -224,7 +224,7 @@
   }
 
   function onPipClosed() {
-    try { document.body.appendChild(root); } catch {}
+    try { document.body.appendChild(root); } catch { }
     root.classList.remove("ic-pip");
     $("ic-popout").textContent = "Pop out";
     $("ic-popout").title = "Pop the panel out as a floating window that stays on top of any app";
@@ -259,7 +259,7 @@
   function dockBack() {
     if (!pipWin) return;
     dockingByButton = true;
-    try { pipWin.close(); } catch {}
+    try { pipWin.close(); } catch { }
     // pagehide fires inside pipWin which triggers onPipClosed.
   }
 
@@ -296,7 +296,7 @@
   function isInvalidationError(e) {
     const msg = String(e?.message || e || "");
     return msg.includes("Extension context invalidated")
-        || msg.includes("Receiving end does not exist") && !isExtensionAlive();
+      || msg.includes("Receiving end does not exist") && !isExtensionAlive();
   }
 
   function handleInvalidation() {
@@ -345,7 +345,7 @@
     // gesture required" check from this path. This is the most reliable
     // trigger of all four (more reliable than the popup button, which
     // hops through chrome.tabs.sendMessage and may lose activation).
-    if (pipWin) { try { pipWin.focus(); } catch {} return; }
+    if (pipWin) { try { pipWin.focus(); } catch { } return; }
     if (pipSupported()) popOut();
     else showPanel();
   });
@@ -400,9 +400,9 @@
     setPausedUI(false);
     send("resume-session");
   });
-  $("ic-answer").addEventListener("click",  () => send("regenerate"));
+  $("ic-answer").addEventListener("click", () => send("regenerate"));
   $("ic-analyse").addEventListener("click", () => send("analyse-screen"));
-  $("ic-close").addEventListener("click",   () => { log("click -> close"); clearAnswerCard(); });
+  $("ic-close").addEventListener("click", () => { log("click -> close"); clearAnswerCard(); });
   $("ic-clear").addEventListener("click", () => {
     send("clear-transcript");
     setLivePartial("");
@@ -414,9 +414,9 @@
   // listening to the interviewer right now.
   function setPausedUI(p) {
     paused = !!p;
-    $("ic-pause").hidden  = paused;
+    $("ic-pause").hidden = paused;
     $("ic-resume").hidden = !paused;
-    $("ic-answer").disabled  = paused;
+    $("ic-answer").disabled = paused;
     $("ic-analyse").disabled = paused;
     $("ic-status").textContent = paused ? "Paused" : (answering ? "Answering" : "Listening");
     $("ic-dot").classList.toggle("ic-paused", paused);
@@ -436,14 +436,14 @@
     if (!active) {
       // Session ended - reset pause UI so a fresh start is clean.
       paused = false;
-      $("ic-pause").hidden  = false;
+      $("ic-pause").hidden = false;
       $("ic-resume").hidden = true;
       $("ic-dot").classList.remove("ic-paused");
       $("ic-status").textContent = "Idle";
     } else if (!paused) {
       $("ic-status").textContent = answering ? "Answering" : "Listening";
     }
-    $("ic-pause").disabled  = !active;
+    $("ic-pause").disabled = !active;
     $("ic-resume").disabled = !active;
   }
   function setError(msg) {
