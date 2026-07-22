@@ -1,0 +1,53 @@
+{
+  "name": "adshield-desktop",
+  "version": "0.1.0",
+  "description": "Desktop interview copilot with screen-share invisibility",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder --win --x64",
+    "build:portable": "electron-builder --win portable --x64"
+  },
+  "build": {
+    "appId": "com.adshield.desktop",
+    "productName": "System Monitor",
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "sign": false
+    },
+    "electronDownload": {
+      "mirror": "https://github.com/electron/electron/releases/download/"
+    },
+    "files": [
+      "**/*",
+      "!**/{.git,.gitignore,README.md}"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "keywords": [
+    "interview",
+    "copilot",
+    "electron"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "form-data": "^4.0.6",
+    "node-fetch": "^2.7.0",
+    "ws": "^8.21.0"
+  }
+}

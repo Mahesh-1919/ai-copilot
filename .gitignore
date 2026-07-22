@@ -25,3 +25,7 @@ dist/
 build/
 *.zip
 node_modules/
+
+# Exclude extension and shared folders in desktop-app-version branch
+extension/
+shared/

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Monitor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="ic-root">
+    <!-- Header bar (drag here to move window) -->
+    <div class="ic-bar">
+      <div class="ic-logo">📊</div>
+      <div class="ic-name">System Monitor</div>
+      <div class="ic-spacer"></div>
+      <span class="ic-timer" id="ic-timer">00:00</span>
+      <span class="ic-dot" id="ic-dot" title="Session state"></span>
+      <button id="ic-start" class="ic-primary" title="Start session">Start</button>
+      <button id="ic-pause" title="Pause session" hidden>Pause</button>
+      <button id="ic-resume" class="ic-primary" title="Resume session" hidden>Resume</button>
+      <button id="ic-exit" class="ic-danger" title="Close window (Alt+. to reopen)">Close</button>
+      <button id="ic-clear" title="Clear transcript">Clear</button>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="ic-actions">
+      <button id="ic-answer" class="ic-primary" title="Generate answer">Answer Question</button>
+      <button id="ic-analyse" title="Analyse screen">Analyse Screen</button>
+      <span class="ic-spacer" id="ic-status">Inactive</span>
+    </div>
+
+    <!-- Live transcript partial -->
+    <div class="ic-live" id="ic-live"></div>
+
+    <!-- Error messages -->
+    <div class="ic-err" id="ic-err"></div>
+
+    <!-- Answer card -->
+    <div class="ic-card" id="ic-card">
+      <button class="ic-close" id="ic-close" title="Dismiss">&times;</button>
+      <div class="ic-summary" id="ic-summary" data-empty="1">
+        <strong>Question:</strong> <span id="ic-question-text"></span>
+      </div>
+      <div class="ic-heading" id="ic-heading" data-empty="1">Answer</div>
+      <div class="ic-body" id="ic-body"></div>
+    </div>
+
+    <!-- Manual input (for testing) -->
+    <div class="ic-manual">
+      <input type="text" id="ic-manual-input" placeholder="Type a question to test..." />
+      <button id="ic-manual-send" class="ic-primary">Send</button>
+    </div>
+
+    <!-- Transparency slider -->
+    <div class="ic-transparency">
+      <label for="ic-opacity-slider">Glass Effect:</label>
+      <input type="range" id="ic-opacity-slider" min="0" max="100" value="50" />
+      <span id="ic-opacity-value">50%</span>
+      <small style="opacity: 0.6; margin-left: 8px; font-size: 10px;">g+/g-</small>
+    </div>
+  </div>
+
+  <script src="audio-manager.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

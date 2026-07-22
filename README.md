@@ -1,119 +1,193 @@
-# AdShield Lite (BYOK Chrome Extension)
+# AdShield - Interview Copilot
 
-> Project codename was *Interview Copilot*; the user-visible extension name is **AdShield Lite**
-> so it blends in next to other browser extensions in screen shares. Functionally unchanged.
+Real-time AI interview assistant available in **two versions**:
 
-A real-time AI interview copilot that lives **inside Chrome**, not as a separate
-desktop process — so it doesn't show up as `parakeet`/`pmodule`/etc. in Task
-Manager. You bring your own API key (Groq, Gemini, OpenAI, or any
-OpenAI-compatible endpoint), and the extension streams audio from the meeting
-tab → Whisper → your LLM, then prints answers into a separate Chrome window
-that **is not captured when you share only the meeting tab**.
+1. **Chrome Extension** (`extension/`) - Browser-based with auto-audio
+2. **Electron Desktop** (`desktop/`) - Native app with screen-share invisibility
 
-## Why this exists / what it fixes vs. Parakeet & Chiku AI
+## 🎯 Which Version Should I Use?
 
-| Problem with Parakeet/Chiku | This extension |
-|---|---|
-| Separate desktop process shows up in Task Manager (`para`, `pmodule`, `Parakeet`, `AI`…). | Runs inside the Chrome process. There is no extra process name to grep. |
-| Locked to their LLM choices (and they upcharge for "premium" models). | Use any provider/model. Default presets for **Groq**, **Gemini**, **OpenAI**, plus a "Custom OpenAI-compatible" mode (OpenRouter, Together, Fireworks, Ollama, vLLM…). |
-| Subscription / credit lock-in, USD pricing. | Free. You pay your LLM/STT provider directly at cost. |
-| Audio capture via mic only, sometimes loses the interviewer's voice. | Uses `chrome.tabCapture` — pulls audio *directly from the meeting tab* (Zoom Web, Meet, Teams Web, etc.). Reliable, no echo. |
-| Single transcription engine, often slow. | Pluggable STT — defaults to **Groq Whisper Turbo** (sub-second), falls back to OpenAI Whisper, with VAD-based silence chunking so you don't pay for dead air. |
-| Account required even to try. | No account. No telemetry. Settings stored in `chrome.storage.local`. |
-| Overlay sometimes leaks during full-screen share. | Overlay is a **separate Chrome popup window**. When you share only the meeting *tab* (the normal way), the overlay is in a different window and is *not* in the share. You can drag it to a second monitor too. |
-| Vendor decides the system prompt + persona. | You fully own the system prompt. Paste your resume + JD; answers come out in first-person, grounded to your actual experience. |
+| Feature | Chrome Extension | Electron Desktop |
+|---------|------------------|------------------|
+| **Auto audio capture** | ✅ Yes (tab audio) | ⏳ Manual input only* |
+| **Speech-to-text** | ✅ Groq/OpenAI/AssemblyAI | ⏳ Coming soon |
+| **LLM answers** | ✅ Yes | ✅ Yes |
+| **Screen-share invisibility** | ⚠️ Tab-only | ✅ **Always** (Windows 10+) |
+| **Works across apps** | ❌ Chrome only | ✅ VSCode, Programiz, etc. |
+| **Setup** | Easy (load unpacked) | Medium (npm install) |
+| **Stealth** | "AdShield Lite" | "System Monitor" |
 
-## Limitations / honest caveats
+\*System audio on Windows requires virtual audio cable or API integration (pending)
 
-- This is a "developer mode" extension. You'll load it unpacked.
-- If the user shares the **entire screen** (not just a tab), the overlay
-  window will be visible. Always share the *tab*, not the screen.
-- `tabCapture` only captures audio while the tab is alive. Don't close the
-  meeting tab during the session.
-- Audio is sent to your chosen STT provider, and questions are sent to your
-  chosen LLM provider. There is no other server in between — but those
-  providers see the audio/text. Pick providers you trust.
-- Detectability: using AI assistance in interviews is against most companies'
-  policies. This tool exists for personal practice, accessibility (e.g. live
-  captioning of fast speakers), and post-call note generation. Use at your own
-  risk.
+### Quick Recommendations:
 
-## Install (load unpacked)
+- **Browser-only interviews** (Google Meet, Zoom Web) → Use **Chrome Extension**
+- **Multi-app interviews** (browser + IDE + coding platforms) → Use **Electron Desktop** (type questions manually)
+- **In-person / phone interviews** → Use **Electron Desktop** (type as they ask)
 
-1. Open Chrome and go to `chrome://extensions`.
-2. Toggle **Developer mode** on (top-right).
-3. Click **Load unpacked**, pick the `interview-copilot` folder.
-4. Pin the extension to the toolbar (click the puzzle icon → pin).
-5. Click the extension icon → **⚙ settings** (or open `chrome://extensions` →
-   *Details* → *Extension options*).
-6. Pick a provider, paste your API key, pick a model, paste your resume.
-   Click **Test connection** — you should see `OK — provider replied: "pong"`.
-7. Save.
+---
 
-### Recommended starter config
+## Chrome Extension Setup
 
-- **Provider:** Groq
-- **Model:** `llama-3.3-70b-versatile` *(or `openai/gpt-oss-120b` for stronger reasoning)*
-- **STT:** Groq Whisper, model `whisper-large-v3-turbo`
-- One API key covers both chat and STT.
-- Get a key at <https://console.groq.com/keys>.
+See [extension/README.md](extension/README.md) for full docs.
 
-Other providers:
-
-- **OpenAI:** model `gpt-4o-mini` (cheap), `gpt-4.1` (smart), key at <https://platform.openai.com/api-keys>.
-- **Gemini:** model `gemini-2.5-flash`, key at <https://aistudio.google.com/apikey>. Gemini doesn't ship a Whisper endpoint, so set STT provider to Groq or OpenAI.
-- **OpenRouter / Together / Fireworks / Ollama:** pick *Custom OpenAI-compatible*, paste their base URL and a model slug.
-
-## Use
-
-1. Open your meeting in a **Chrome tab** (Meet, Zoom Web, Teams Web, Whereby, HackerRank, LeetCode…).
-2. Click the extension icon → **Start session**.
-3. A small **AdShield Lite** window pops up. Drag it to a corner / second monitor.
-4. When asked to share your screen, **share only the meeting tab**, not the entire screen.
-5. The interviewer's audio is transcribed live; an answer streams into the overlay within ~1 sec of them finishing.
-6. You can also type a question directly into the overlay's input bar (useful for in-person interviews — point your phone's mic at the room and re-type the question, or use it for behavioral prep).
-7. Click **Stop** in the popup when done.
-
-## File layout
-
-```
-manifest.json           MV3 manifest
-background.js           Service worker: routing + LLM streaming
-offscreen.html/js       Audio capture (tabCapture → VAD → WAV chunks)
-popup.html/js/css       Toolbar popup: start/stop
-options.html/js/css     Settings page (provider, key, resume, prompt)
-overlay.html/js/css     Floating Copilot window
-lib/storage.js          chrome.storage wrapper + defaults
-lib/providers.js        Groq / OpenAI / Gemini chat adapters
-lib/transcribers.js     Whisper STT adapters
-lib/wav.js              Float32 → 16-bit PCM WAV
-icons/                  16/48/128 PNG icons
+**Quick start:**
+```bash
+1. Open chrome://extensions
+2. Enable Developer mode
+3. Load unpacked → select /extension/ folder
+4. Add API keys in extension options
+5. Start a meeting → Click extension → Start session
 ```
 
-## How it works (technical)
+**Features:**
+- Auto-captures tab audio (Google Meet, Zoom Web, Teams Web)
+- Real-time STT (Groq Whisper, OpenAI Whisper, AssemblyAI)
+- Streaming LLM answers
+- Invisible when sharing *tabs* (not entire screen)
 
-1. **Popup** triggers `chrome.tabCapture.getMediaStreamId({targetTabId})` from a user-gesture context.
-2. **Background service worker** spawns an **offscreen document** (MV3 requires this — service workers can't hold `MediaStream`s).
-3. **Offscreen** calls `getUserMedia({audio: {mandatory: {chromeMediaSource:'tab', chromeMediaSourceId}}})`, routes audio back to `audioContext.destination` so the user still hears the call, and taps a `ScriptProcessorNode` for analysis.
-4. Per-frame **RMS-based VAD** chunks the audio: a chunk ends when there's silence ≥ `silenceMs` *and* the chunk is at least `minChunkMs` long, or hits `maxChunkMs`.
-5. Each chunk is encoded as a 16 kHz mono **WAV** and posted to the background.
-6. Background calls **Whisper** (Groq or OpenAI), appends the transcript, and (if `autoAnswer` is on) debounces 500 ms before firing an LLM request.
-7. LLM request streams via **SSE** (OpenAI/Groq) or `streamGenerateContent?alt=sse` (Gemini). Deltas are broadcast to the overlay window in real time. Any in-flight stream is cancellable via `AbortController` (Stop button or new question arriving).
+---
 
-## Tuning
+## Electron Desktop Setup
 
-If transcription fires too aggressively (e.g. on short "uh-huh"s), in Settings:
+See [desktop/README.md](desktop/README.md) for full docs.
 
-- Increase **Silence (ms) to end a chunk** to 1500–2000.
-- Increase **Min chunk length** to 2000.
-- Increase **Silence RMS threshold** slightly (e.g. 0.02 in a noisy room).
+**Quick start:**
+```bash
+cd desktop
+npm install
+npm start
+```
 
-If answers feel slow:
+**How to use:**
+1. Window titled "System Monitor" appears (stealth, always on top)
+2. Click "Start"
+3. Type interview questions in the input box
+4. Answers stream from LLM (Groq/OpenAI/OpenRouter)
+5. Pause/Resume as needed
 
-- Use Groq with `llama-3.1-8b-instant` (fastest) or `llama-3.3-70b-versatile`.
-- Use Groq Whisper Turbo for STT.
-- Lower **Max chunk length** so chunks flush faster.
+**Features:**
+- Invisible during screen share (even full-screen share)
+- Works across ANY app (not just browser)
+- Manual text input → LLM answer
+- Same config as extension (api-keys.json, resume.txt, jd.txt)
+
+**Test invisibility:**
+1. Start app
+2. Open Zoom/Meet and share entire screen
+3. App window should be invisible/black in preview ✅
+
+---
+
+## Shared Configuration
+
+Both versions read from the **root folder**:
+
+```
+interview-copilot/
+├── api-keys.json        ← Your API keys (gitignored)
+├── resume.txt           ← Your resume (gitignored)
+├── job-description.txt  ← Target JD (gitignored)
+└── .gitignore           ← Protects secrets
+```
+
+**Create `api-keys.json`:**
+```json
+{
+  "groq": ["gsk_YOUR_KEY_HERE"],
+  "openai": ["sk_YOUR_KEY_HERE"],
+  "openrouter": ["sk-or-v1-YOUR_KEY_HERE"]
+}
+```
+
+**Add your resume** to `resume.txt` and job description to `job-description.txt`.
+
+Both apps auto-load these files on startup.
+
+---
+
+## Repository Structure
+
+```
+interview-copilot/
+├── extension/          Chrome MV3 extension (full auto-audio)
+│   ├── manifest.json
+│   ├── background.js   Service worker (LLM, STT, state)
+│   ├── content/        Panel UI
+│   ├── lib/            Providers, transcribers, storage
+│   └── offscreen.js    Audio capture (tabCapture)
+│
+├── desktop/            Electron app (screen-share invisible)
+│   ├── main.js         Window + setContentProtection
+│   ├── backend.js      Session + LLM logic
+│   ├── lib-providers.js  LLM adapters
+│   ├── renderer/       UI (HTML/CSS/JS)
+│   └── package.json
+│
+├── shared/             Common code (copied from extension/lib)
+│   └── lib/
+│
+├── api-keys.json       Your keys (gitignored)
+├── resume.txt          Your resume (gitignored)
+├── job-description.txt Your JD (gitignored)
+└── .gitignore
+```
+
+---
+
+## Development Status
+
+### Chrome Extension ✅ Production Ready
+- [x] Real-time tab audio capture
+- [x] STT (AssemblyAI, Groq Whisper, OpenAI Whisper)
+- [x] LLM streaming (Groq, OpenRouter, OpenAI, Anthropic, Gemini)
+- [x] Multi-API-key rotation + fallback
+- [x] Pause/Resume
+- [x] Document Picture-in-Picture
+- [x] Vision analysis (screenshot → vision model)
+- [x] Markdown code rendering
+
+### Electron Desktop ✅ Core Functional, Audio Pending
+- [x] Window with setContentProtection (invisible during share)
+- [x] Session controls (Start/Stop/Pause/Resume)
+- [x] Manual text input
+- [x] LLM streaming (Groq, OpenAI, OpenRouter)
+- [x] Config loading (keys, resume, JD)
+- [x] Stealth title ("System Monitor")
+- [ ] Auto system audio capture (needs Windows loopback)
+- [ ] STT integration
+- [ ] Vision analysis
+- [ ] Markdown code rendering
+
+---
+
+## Security & Ethics
+
+**Secrets:**
+- `api-keys.json`, `resume.txt`, `job-description.txt` are **gitignored**
+- Never committed to repo
+- Stay local on your machine
+
+**Detectability:**
+- Using AI in interviews violates most companies' policies
+- These tools exist for:
+  - Personal practice
+  - Accessibility (live captions for fast speakers)
+  - Post-interview notes
+- **Use at your own risk**
+
+**Chrome Extension:**
+- Runs inside Chrome process (no separate "parakeet" exe)
+- Named "AdShield Lite" to blend in
+- Panel hidden when sharing tabs
+
+**Electron App:**
+- Named "System Monitor" (looks like diagnostic tool)
+- `setContentProtection` makes it invisible during shares
+- But shows in taskbar (hide taskbar or pin many apps to bury it)
+
+---
 
 ## License
 
-MIT — do what you want, but read the "Limitations / honest caveats" section.
+MIT - see individual README files for full disclaimers

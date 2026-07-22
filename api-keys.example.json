@@ -1,9 +1,0 @@
-{
-  "_help": "Rename this file to api-keys.json (or copy its shape into api-keys.txt) and the extension will read it on every reload. Each value can be a single string or an array of strings. Unknown providers are ignored. Make sure api-keys.json is gitignored.",
-  "groq":       ["gsk_PASTE_KEY_1", "gsk_PASTE_KEY_2", "gsk_PASTE_KEY_3"],
-  "openrouter": ["sk-or-v1-PASTE_KEY"],
-  "openai":     [],
-  "anthropic":  [],
-  "gemini":     ["AIzaPASTE_KEY"],
-  "assemblyai": ["32_HEX_CHARS_PASTE_KEY"]
-}

@@ -1,0 +1,463 @@
+/* Desktop app styles - ported from extension with transparency */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: transparent; /* TRUE TRANSPARENCY */
+  overflow: hidden;
+  height: 100vh;
+  margin: 0;
+  cursor: default; /* Normal cursor by default */
+}
+
+/* Only the header bar is draggable */
+.ic-bar {
+  -webkit-app-region: drag;
+  cursor: move; /* Show move cursor only on header */
+}
+
+/* Everything else is NOT draggable and shows normal cursor */
+button, input, .ic-card, .ic-actions, .ic-live, .ic-manual, .ic-transparency {
+  -webkit-app-region: no-drag;
+  cursor: default;
+}
+
+button {
+  cursor: pointer !important; /* Pointer cursor for buttons */
+}
+
+input[type="range"] {
+  cursor: pointer !important; /* Pointer cursor for slider */
+}
+
+#ic-root {
+  --ic-bg: #0e1218;
+  --ic-card: rgba(21, 27, 37, 0.75); /* Semi-transparent */
+  --ic-card-2: rgba(28, 35, 48, 0.75);
+  --ic-fg: #e9eef5;
+  --ic-muted: #8a93a0;
+  --ic-accent: #7c5cff;
+  --ic-accent-2: #4ee0a8;
+  --ic-danger: #ff5d5d;
+  --ic-border: rgba(35, 42, 53, 0.6);
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  height: 100vh;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ic-fg);
+  opacity: 1; /* Full opacity by default - transparency comes from backdrop-filter */
+  transition: opacity 0.2s;
+}
+
+/* Header bar */
+.ic-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(21, 27, 37, 0.65); /* More transparent */
+  border: 1px solid var(--ic-border);
+  border-radius: 12px;
+  padding: 6px 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px) saturate(180%); /* FROSTED GLASS EFFECT */
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.ic-logo {
+  font-size: 18px;
+  flex: 0 0 auto;
+}
+
+.ic-name {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.ic-spacer {
+  flex: 1;
+}
+
+.ic-timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--ic-muted);
+  padding: 0 6px;
+}
+
+.ic-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #555;
+  transition: background 0.3s;
+}
+
+.ic-dot.active {
+  background: var(--ic-accent-2);
+  box-shadow: 0 0 8px var(--ic-accent-2);
+}
+
+.ic-dot.paused {
+  background: #fbbf24;
+}
+
+/* Buttons */
+button {
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ic-fg);
+  transition: all 0.15s;
+}
+
+button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button.ic-primary {
+  background: var(--ic-accent);
+  color: white;
+}
+
+button.ic-primary:hover:not(:disabled) {
+  background: #6848e0;
+}
+
+button.ic-danger {
+  background: var(--ic-danger);
+  color: white;
+}
+
+button.ic-danger:hover:not(:disabled) {
+  background: #e04545;
+}
+
+/* Actions row */
+.ic-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(21, 27, 37, 0.65);
+  border: 1px solid var(--ic-border);
+  border-radius: 10px;
+  padding: 6px 8px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+#ic-status {
+  font-size: 11px;
+  color: var(--ic-muted);
+  font-style: italic;
+}
+
+/* Live partial transcript */
+.ic-live {
+  background: rgba(28, 35, 48, 0.6);
+  border: 1px solid var(--ic-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--ic-muted);
+  font-style: italic;
+  min-height: 36px;
+  backdrop-filter: blur(15px) saturate(150%);
+  -webkit-backdrop-filter: blur(15px) saturate(150%);
+  display: flex;
+  align-items: center;
+}
+
+.ic-live:empty::before {
+  content: "Waiting for speech...";
+  opacity: 0.5;
+}
+
+/* Error messages */
+.ic-err {
+  background: rgba(255, 93, 93, 0.15);
+  border: 1px solid rgba(255, 93, 93, 0.3);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #ff9393;
+  font-size: 12px;
+  display: none;
+}
+
+.ic-err:not(:empty) {
+  display: block;
+}
+
+/* Answer card */
+.ic-card {
+  background: rgba(21, 27, 37, 0.70);
+  border: 1px solid var(--ic-border);
+  border-radius: 10px;
+  padding: 12px;
+  position: relative;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.ic-card:not([data-empty="1"]) {
+  display: flex;
+}
+
+.ic-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.ic-close:hover {
+  opacity: 1;
+}
+
+.ic-summary {
+  font-size: 12px;
+  color: var(--ic-muted);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ic-border);
+}
+
+.ic-summary[data-empty="1"] {
+  display: none;
+}
+
+.ic-heading {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ic-accent-2);
+}
+
+.ic-heading[data-empty="1"] {
+  display: none;
+}
+
+.ic-body {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ic-fg);
+}
+
+.ic-body:empty::before {
+  content: "Answer will appear here...";
+  color: var(--ic-muted);
+  font-style: italic;
+}
+
+/* Markdown styling */
+.ic-body p {
+  margin: 8px 0;
+}
+
+.ic-body ul, .ic-body ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.ic-body li {
+  margin: 4px 0;
+}
+
+.ic-body code {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  color: #4ee0a8;
+}
+
+.ic-body pre {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 10px;
+  overflow-x: auto;
+  margin: 10px 0;
+}
+
+.ic-body pre code {
+  background: none;
+  padding: 0;
+  color: #e9eef5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ic-body strong {
+  color: var(--ic-accent-2);
+  font-weight: 700;
+}
+
+/* Manual input */
+.ic-manual {
+  display: flex;
+  gap: 6px;
+  background: rgba(21, 27, 37, 0.65);
+  border: 1px solid var(--ic-border);
+  border-radius: 10px;
+  padding: 8px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.ic-manual input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ic-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--ic-fg);
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.ic-manual input:focus {
+  outline: none;
+  border-color: var(--ic-accent);
+}
+
+.ic-manual input::placeholder {
+  color: var(--ic-muted);
+}
+
+/* Transparency control */
+.ic-transparency {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(21, 27, 37, 0.65);
+  border: 1px solid var(--ic-border);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 11px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.ic-transparency label {
+  color: var(--ic-muted);
+  font-weight: 600;
+}
+
+.ic-transparency input[type="range"] {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.ic-transparency input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ic-accent);
+  cursor: pointer;
+}
+
+.ic-transparency input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ic-accent);
+  cursor: pointer;
+  border: none;
+}
+
+#ic-opacity-value {
+  color: var(--ic-fg);
+  font-weight: 600;
+  min-width: 35px;
+  text-align: right;
+}
+
+/* Smooth transparency - uses CSS custom properties set by JavaScript */
+#ic-root {
+  --transparency-blur: 0px;
+  --transparency-saturation: 100%;
+  --transparency-bg-opacity: 1;
+}
+
+.ic-bar,
+.ic-actions,
+.ic-card,
+.ic-manual,
+.ic-transparency,
+.ic-live {
+  backdrop-filter: blur(var(--transparency-blur)) saturate(var(--transparency-saturation));
+  -webkit-backdrop-filter: blur(var(--transparency-blur)) saturate(var(--transparency-saturation));
+  background: rgba(21, 27, 37, var(--transparency-bg-opacity)) !important;
+  transition: backdrop-filter 0.15s ease, background 0.15s ease;
+}
+
+/* Enhance text readability when glass effect is high */
+#ic-root.ic-glass-text .ic-name,
+#ic-root.ic-glass-text .ic-timer,
+#ic-root.ic-glass-text #ic-status,
+#ic-root.ic-glass-text .ic-body,
+#ic-root.ic-glass-text .ic-summary,
+#ic-root.ic-glass-text .ic-heading {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8),
+               0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+#ic-root.ic-glass-text button {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
