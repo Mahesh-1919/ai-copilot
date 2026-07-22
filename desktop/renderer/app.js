@@ -479,9 +479,12 @@ if (document.readyState === 'loading') {
   init();
 }
 
-// Reset answer when new question comes in
-window.electronAPI.onTranscriptUpdate(() => {
-  if (currentAnswer) {
-    clearAnswerCard();
+// Update live transcript view without wiping active answer card
+window.electronAPI.onTranscriptUpdate((data) => {
+  if (data && data.transcript && data.transcript.length > 0) {
+    const lastEntry = data.transcript[data.transcript.length - 1];
+    if (!currentAnswer) {
+      currentQuestion = lastEntry;
+    }
   }
 });

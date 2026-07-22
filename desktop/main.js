@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, globalShortcut, desktopCapturer, session } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, globalShortcut, desktopCapturer, session, screen } = require('electron');
 const path = require('path');
 const { Backend } = require('./backend');
 
@@ -269,6 +269,50 @@ app.whenReady().then(() => {
   } else {
     console.error(`[main] Failed to register global shortcut: ${shortcut}`);
   }
+
+  // ── Ctrl+Right → expand window to the RIGHT ───────────────────────────────
+  // ── Ctrl+Left  → expand window to the LEFT  ──────────────────────────────
+  // Each shortcut toggles between normal width (420) and wide width (800).
+  // Pressing the opposite direction while expanded re-anchors to that side.
+  const NORMAL_WIDTH = 420;
+  const WIDE_WIDTH   = 800;
+  let expandedSide = null; // null | 'left' | 'right'
+
+  function expandWindow(side) {
+    if (!mainWindow) return;
+    const [curX, curY]     = mainWindow.getPosition();
+    const [curW, curH]     = mainWindow.getSize();
+    const { width: scrW }  = screen.getPrimaryDisplay().workAreaSize;
+
+    if (expandedSide === side) {
+      // Already expanded this side → snap back to normal width
+      const normalX = side === 'left'
+        ? Math.min(curX + (curW - NORMAL_WIDTH), scrW - NORMAL_WIDTH)
+        : curX;
+      mainWindow.setSize(NORMAL_WIDTH, curH, true);
+      mainWindow.setPosition(Math.max(0, normalX), curY, true);
+      expandedSide = null;
+      console.log(`[main] Window snapped back to normal (was expanded ${side})`);
+    } else {
+      // Expand toward the requested side
+      const wideW = WIDE_WIDTH;
+      let newX = curX;
+      if (side === 'left') {
+        newX = Math.max(0, curX - (wideW - curW));
+      }
+      // Clamp so window stays on screen
+      newX = Math.max(0, Math.min(newX, scrW - wideW));
+      mainWindow.setSize(wideW, curH, true);
+      mainWindow.setPosition(newX, curY, true);
+      expandedSide = side;
+      console.log(`[main] Window expanded ${side} to ${wideW}px`);
+    }
+  }
+
+  globalShortcut.register('CommandOrControl+Right', () => expandWindow('right'));
+  globalShortcut.register('CommandOrControl+Left',  () => expandWindow('left'));
+  console.log('[main] Global shortcuts registered: Ctrl+Left / Ctrl+Right (expand window)');
+
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

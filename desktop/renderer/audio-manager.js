@@ -137,7 +137,7 @@ class AudioManager {
 
     const shouldSend =
       (this.speakingDetected && this.silenceStart && (now - this.silenceStart) >= this.SILENCE_MS) ||
-      (elapsedFromChunk >= this.MAX_CHUNK_MS);
+      (this.speakingDetected && elapsedFromChunk >= this.MAX_CHUNK_MS);
 
     if (shouldSend && this.audioBuffer.length > 0 && elapsedFromChunk >= this.MIN_CHUNK_MS) {
       this.sendChunk();
