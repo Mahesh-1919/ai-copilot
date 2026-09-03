@@ -91,14 +91,36 @@ interview-copilot/
 └── .gitignore           ← Protects secrets
 ```
 
-**Create `api-keys.json`:**
+**Create `api-keys.json`** — bare minimum required to run (audio capture → STT → LLM answer):
+
 ```json
 {
-  "groq": ["gsk_YOUR_KEY_HERE"],
-  "openai": ["sk_YOUR_KEY_HERE"],
-  "openrouter": ["sk-or-v1-YOUR_KEY_HERE"]
+  "groq":     ["gsk_YOUR_GROQ_KEY"],
+  "cerebras": ["csk_YOUR_CEREBRAS_KEY"]
 }
 ```
+
+| Key | Required? | Used for |
+|-----|-----------|----------|
+| `groq`     | ✅ Yes | Whisper speech-to-text (transcription) |
+| `cerebras` | ✅ Yes (at least `cerebras[0]`) | Primary LLM answers (`gpt-oss-120b`) |
+
+Optional providers (add only if you want fallback / extra features):
+
+```json
+{
+  "groq":     ["gsk_YOUR_GROQ_KEY"],
+  "cerebras": ["csk_ANSWER_KEY", "csk_VISION_KEY", "csk_FALLBACK_KEY"],
+  "gemini":     ["AIza_YOUR_KEY"],
+  "openrouter": ["sk-or-v1_YOUR_KEY"],
+  "openai":     ["sk_YOUR_KEY"]
+}
+```
+
+- `cerebras[1]` → vision model (`gemma-4-31b`) for **Analyse Screen**
+- `cerebras[2]`, `gemini`, `openrouter`, `openai` → answer fallbacks if the primary key rate-limits/fails
+
+> Each value can be a single string or an array. Only `groq` + `cerebras[0]` are needed to start.
 
 **Add your resume** to `resume.txt` and job description to `job-description.txt`.
 

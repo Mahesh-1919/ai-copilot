@@ -151,6 +151,50 @@ class OpenAIProvider {
   }
 }
 
+// Cerebras exposes an OpenAI-compatible streaming chat endpoint.
+class CerebrasProvider {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+    this.baseUrl = 'https://api.cerebras.ai/v1';
+  }
+
+  async *streamChat(messages, { model, temperature = 0.2, max_tokens, signal }) {
+    const payload = { model, messages, temperature, stream: true };
+    if (model === 'gpt-oss-120b') payload.reasoning_effort = 'low';
+    if (max_tokens) payload.max_completion_tokens = max_tokens;
+    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+        'X-Cerebras-Version-Patch': '2',
+      },
+      body: JSON.stringify(payload),
+      signal,
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new LLMHttpError({ status: response.status, provider: 'Cerebras', model, body: text, retryAfterHeader: response.headers.get('retry-after') });
+    }
+    let buffer = '';
+    for await (const chunk of response.body) {
+      buffer += chunk.toString();
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        const match = SSE_LINE.exec(line.trim());
+        if (!match || match[1] === '[DONE]') continue;
+        try {
+          const delta = JSON.parse(match[1]).choices?.[0]?.delta?.content;
+          if (delta) yield delta;
+        } catch (error) {
+          console.error('[Cerebras] Parse error:', error);
+        }
+      }
+    }
+  }
+}
+
 // ─── OpenRouter provider ──────────────────────────────────────────────────────
 class OpenRouterProvider {
   constructor(apiKey) {
@@ -245,12 +289,15 @@ class GeminiProvider {
   }
 
   async *streamChat(messages, { model, temperature = 0.3, signal }) {
-    const url = `${this.baseUrl}/${model}:generateContent?key=${this.apiKey}`;
+    const url = `${this.baseUrl}/${model}:streamGenerateContent?alt=sse&key=${this.apiKey}`;
     const contents = this._formatMessages(messages);
 
     const payload = {
       contents,
-      generationConfig: { temperature },
+      generationConfig: {
+        thinkingConfig: { thinkingLevel: 'MINIMAL' },
+        maxOutputTokens: 900,
+      },
     };
 
     const response = await fetch(url, {
@@ -265,15 +312,46 @@ class GeminiProvider {
       throw new LLMHttpError({ status: response.status, provider: 'Gemini', model, body: text, retryAfterHeader: response.headers.get('retry-after') });
     }
 
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    if (text) yield text;
+    let buffer = '';
+    for await (const chunk of response.body) {
+      buffer += chunk.toString();
+      // Parse line-by-line so both LF and CRLF SSE framing work.
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const rawLine of lines) {
+        const match = SSE_LINE.exec(rawLine.trim());
+        if (!match || match[1] === '[DONE]') continue;
+        try {
+          const data = JSON.parse(match[1]);
+          const text = data.candidates?.[0]?.content?.parts
+            ?.map(part => part.text || '')
+            .join('') || '';
+          if (text) yield text;
+        } catch (error) {
+          console.error('[Gemini] Parse error:', error);
+        }
+      }
+    }
+    // Gemini may omit a final newline when the response fits in one SSE event.
+    const finalMatch = SSE_LINE.exec(buffer.trim());
+    if (finalMatch && finalMatch[1] !== '[DONE]') {
+      try {
+        const data = JSON.parse(finalMatch[1]);
+        const text = data.candidates?.[0]?.content?.parts
+          ?.map(part => part.text || '')
+          .join('') || '';
+        if (text) yield text;
+      } catch (error) {
+        console.error('[Gemini] Final event parse error:', error);
+      }
+    }
   }
 }
 
 // ─── Factory ──────────────────────────────────────────────────────────────────
 function createProvider(providerName, apiKey) {
   switch (providerName.toLowerCase()) {
+    case 'cerebras': return new CerebrasProvider(apiKey);
     case 'groq': return new GroqProvider(apiKey);
     case 'openai': return new OpenAIProvider(apiKey);
     case 'openrouter': return new OpenRouterProvider(apiKey);
@@ -286,6 +364,15 @@ function createProvider(providerName, apiKey) {
 function getVisionModel(config) {
   const { apiKeys = {} } = config;
 
+  // The second Cerebras key is dedicated to Gemma vision requests.
+  if (Array.isArray(apiKeys.cerebras) && apiKeys.cerebras[1]) {
+    return {
+      provider: 'cerebras',
+      apiKey: apiKeys.cerebras[1],
+      model: 'gemma-4-31b',
+    };
+  }
+
   if (apiKeys.openai && apiKeys.openai.length > 0) {
     return {
       provider: 'openai',
@@ -294,19 +381,20 @@ function getVisionModel(config) {
     };
   }
 
-  if (apiKeys.openrouter && apiKeys.openrouter.length > 0) {
-    return {
-      provider: 'openrouter',
-      apiKey: Array.isArray(apiKeys.openrouter) ? apiKeys.openrouter[0] : apiKeys.openrouter,
-      model: 'openai/gpt-4o',
-    };
-  }
-
+  // Prefer the direct Gemini endpoint over a proxy to reduce vision latency.
   if (apiKeys.gemini && apiKeys.gemini.length > 0) {
     return {
       provider: 'gemini',
       apiKey: Array.isArray(apiKeys.gemini) ? apiKeys.gemini[0] : apiKeys.gemini,
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.5-flash-lite',
+    };
+  }
+
+  if (apiKeys.openrouter && apiKeys.openrouter.length > 0) {
+    return {
+      provider: 'openrouter',
+      apiKey: Array.isArray(apiKeys.openrouter) ? apiKeys.openrouter[0] : apiKeys.openrouter,
+      model: 'google/gemini-2.5-flash',
     };
   }
 

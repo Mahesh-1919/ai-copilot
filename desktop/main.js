@@ -1,6 +1,39 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, globalShortcut, desktopCapturer, session, screen } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const { Backend } = require('./backend');
+
+const SOURCE_FILES = [
+  'main.js',
+  'backend.js',
+  'lib-providers.js',
+  'preload.js',
+  'renderer/index.html',
+  'renderer/styles.css',
+  'renderer/app.js',
+  'renderer/audio-manager.js',
+  'renderer/audio-worklet.js',
+];
+
+function getSourceVersion() {
+  return SOURCE_FILES.reduce((latest, relativePath) => {
+    try {
+      return Math.max(latest, fs.statSync(path.join(__dirname, relativePath)).mtimeMs);
+    } catch {
+      return latest;
+    }
+  }, 0);
+}
+
+const startupSourceVersion = getSourceVersion();
+
+function relaunchWithLatestCode() {
+  // Remove --hidden so a hotkey-triggered refresh opens visibly after relaunch.
+  const args = process.argv.slice(1).filter(arg => arg !== '--hidden');
+  app.relaunch({ args });
+  app.isQuitting = true;
+  app.quit();
+}
 
 // Speaker/system audio ONLY — never grant the microphone
 function setupSystemAudioCapture() {
@@ -67,6 +100,19 @@ process.stderr.on('error', (err) => {
 let mainWindow;
 let backend;
 let tray = null;
+const launchedHidden = process.argv.includes('--hidden');
+
+// Keep only one tray instance. Launching the app again reveals the existing one.
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+if (!hasSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (!mainWindow) return;
+    mainWindow.show();
+    mainWindow.focus();
+  });
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -80,6 +126,7 @@ function createWindow() {
     skipTaskbar: true, // HIDE from taskbar
     resizable: true, // Allow resizing - resize cursors won't show in screen share
     title: 'System Monitor',
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -94,6 +141,13 @@ function createWindow() {
   backend = new Backend(mainWindow);
 
   mainWindow.loadFile('renderer/index.html');
+
+  mainWindow.once('ready-to-show', () => {
+    if (!launchedHidden) {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
 
   // Open DevTools in development
   if (process.argv.includes('--dev')) {
@@ -237,6 +291,20 @@ ipcMain.handle('hide-window', async () => {
 });
 
 app.whenReady().then(() => {
+  // Start with Windows and remain in the tray. In development Electron needs the
+  // app directory as an argument; packaged builds only need the hidden flag.
+  if (process.platform === 'win32') {
+    const loginArgs = app.isPackaged
+      ? ['--hidden']
+      : [path.resolve(__dirname), '--hidden'];
+    app.setLoginItemSettings({
+      openAtLogin: true,
+      path: process.execPath,
+      args: loginArgs,
+    });
+    console.log('[main] Windows login launch enabled (hidden in tray)');
+  }
+
   setupSystemAudioCapture();
   createTray(); // Create system tray icon first
   createWindow();
@@ -258,6 +326,11 @@ app.whenReady().then(() => {
         }
         mainWindow.hide();
       } else {
+        if (!app.isPackaged && getSourceVersion() > startupSourceVersion) {
+          console.log('[main] Source changed; relaunching with latest code');
+          relaunchWithLatestCode();
+          return;
+        }
         mainWindow.show();
         mainWindow.focus();
       }

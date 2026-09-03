@@ -124,15 +124,15 @@ function setupEventListeners() {
   startBtn.addEventListener('click', async () => {
     console.log('[renderer] Start button clicked');
     try {
-      // Kill any previous audio/session so quick Start/Stop/Start never conflicts
-      try { await window.audioManager.stop(); } catch {}
-      try { await window.electronAPI.stopSession(); } catch {}
+      // Backend initialization and OS loopback negotiation are independent.
+      const sessionPromise = window.electronAPI.startSession();
 
       showError('🎤 Starting audio capture...');
-      await window.audioManager.start();
+      const audioPromise = window.audioManager.start();
+      await audioPromise;
       showError('✓ Audio capture started');
 
-      const result = await window.electronAPI.startSession();
+      const [result] = await Promise.all([sessionPromise, audioPromise]);
       console.log('[renderer] Start session result:', result);
     } catch (error) {
       console.error('[renderer] Start session error:', error);

@@ -17,14 +17,56 @@ secrets/
 .DS_Store
 Thumbs.db
 desktop.ini
+ehthumbs.db
+ehthumbs_vista.db
+*.lnk
+$RECYCLE.BIN/
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# Logs & debug output
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Build artifacts
 dist/
 build/
+out/
+release/
+release-builds/
 *.zip
+*.tar.gz
+*.7z
+*.msi
+*.dmg
+*.deb
+*.rpm
+*.AppImage
+*.exe
+*.blockmap
 node_modules/
+
+# Caches & build temp
+.npm/
+.cache/
+.parcel-cache/
+.electron/
+.electron-gyp/
+.node-gyp/
+
+# Test coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Local overrides
+*.local
 
 # Exclude extension and shared folders in desktop-app-version branch
 extension/
