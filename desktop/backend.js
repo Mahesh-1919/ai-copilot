@@ -115,38 +115,36 @@ class Backend {
     }
   }
 
-  // Load configuration from root folder files
+  async readFileFromCandidates(filenames, dirs) {
+    for (const dir of dirs) {
+      for (const filename of filenames) {
+        try {
+          return await fs.readFile(path.join(dir, filename), 'utf-8');
+        } catch { }
+      }
+    }
+    return '';
+  }
+
+  // Bundled files sit next to this script; in dev they live one folder up.
   async loadConfig() {
     try {
-      const rootDir = path.join(__dirname, '..');
+      const searchDirs = [__dirname, path.join(__dirname, '..')];
 
-      // Try to load API keys
       let apiKeys = {};
-      try {
-        const keysPath = path.join(rootDir, 'api-keys.json');
-        const keysData = await fs.readFile(keysPath, 'utf-8');
-        apiKeys = JSON.parse(keysData);
-      } catch (e) {
+      const keysRaw = await this.readFileFromCandidates(['api-keys.json'], searchDirs);
+      if (keysRaw) {
+        try { apiKeys = JSON.parse(keysRaw); }
+        catch { console.log('[backend] api-keys.json parse error, using defaults'); }
+      } else {
         console.log('[backend] No api-keys.json found, using defaults');
       }
 
-      // Try to load resume
-      let resume = '';
-      for (const filename of ['resume.txt', 'resume.md']) {
-        try {
-          resume = await fs.readFile(path.join(rootDir, filename), 'utf-8');
-          break;
-        } catch { }
-      }
-
-      // Try to load job description
-      let jobDescription = '';
-      for (const filename of ['job-description.txt', 'jd.txt', 'jd.md', 'job-description.md']) {
-        try {
-          jobDescription = await fs.readFile(path.join(rootDir, filename), 'utf-8');
-          break;
-        } catch { }
-      }
+      const resume = await this.readFileFromCandidates(['resume.txt', 'resume.md'], searchDirs);
+      const jobDescription = await this.readFileFromCandidates(
+        ['job-description.txt', 'jd.txt', 'jd.md', 'job-description.md'],
+        searchDirs,
+      );
 
       // Get first available API key for each provider
       const getFirstKey = (arr) => {
@@ -228,11 +226,14 @@ class Backend {
       "- Name components only when they are important, and explain their purpose simply.",
       "- If asked to draw, include a small readable ASCII diagram.",
       "",
-      "CODING QUESTIONS:",
-      "- Start with the approach and why it fits.",
-      "- Give clean code when requested.",
-      "- Explain time and space complexity in plain English.",
-      "- If asked for an implementation, provide complete runnable code that satisfies every stated requirement—not a generic wrapper or architecture sketch.",
+      "CODING QUESTIONS (DSA / ALGORITHM / IMPLEMENTATION):",
+      "- Output ONLY the solution: the function or class needed to solve the problem. Nothing else in the code block.",
+      "- Do NOT include unit tests, test cases, example runs, `if __name__ == \"__main__\"`, CLI entrypoints, `unittest`, `pytest`, `assert` demo blocks, or sample driver code. Never.",
+      "- Do NOT include mocks, fake agents, hard-coded outputs, or placeholder data.",
+      "- Keep comments in the code to a bare minimum — one short line per logical section at most. Do not explain the algorithm inside the code; that belongs in the explanation below.",
+      "- Do not duplicate the solution in a second code block. One clean code block only.",
+      "- Below the code, add a short 'Approach' section in plain English: the idea in 2-4 lines, then time and space complexity. No extra sections unless asked.",
+      "- If asked for an implementation, the code must satisfy every stated requirement — not a generic wrapper or architecture sketch.",
       "- For revisions and follow-ups, modify the existing solution instead of replacing it with an unrelated example.",
       "",
       "BEHAVIORAL OR PAST-EXPERIENCE QUESTIONS:",
@@ -700,7 +701,7 @@ class Backend {
           content: [
             'Solve the screen task below. The extracted screen text is the source of truth.',
             screenInstruction ? `User instruction: ${screenInstruction}` : '',
-            'If implementation is requested, provide complete runnable task-specific code with clear simple comments, validation, error handling, entrypoint, and meaningful tests.',
+            'For coding/DSA tasks: output ONLY the solution function or class — no unit tests, no test cases, no `if __name__ == \"__main__\"`, no CLI entrypoint, no example usage, no mocks, no placeholder data. Keep code comments minimal. After the code, give a short Approach explanation (idea in 2-4 lines + time/space complexity). One code block only.',
             'Do not use mocks, fake agents, hard-coded LLM outputs, placeholder data, or an unrelated generic SDK wrapper unless the task explicitly requires mocks.',
             'Honor every acceptance criterion. Do not introduce deployment or cloud architecture unless requested.',
             '',
