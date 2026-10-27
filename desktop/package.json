@@ -1,17 +1,65 @@
 {
   "name": "adshield-desktop",
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "private": true,
   "description": "Desktop interview copilot with screen-share invisibility",
-  "main": "main.js",
+  "license": "MIT",
+  "author": "",
+  "keywords": [
+    "interview",
+    "copilot",
+    "electron"
+  ],
+  "main": "dist/main/index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "start": "electron .",
-    "dev": "electron . --dev",
-    "build": "electron-builder --win --x64",
-    "build:portable": "electron-builder --win portable --x64"
+    "build": "node scripts/build.mjs",
+    "build:watch": "node scripts/build.mjs --watch",
+    "start": "npm run build && electron .",
+    "dev": "npm run build && electron . --dev",
+    "typecheck": "tsc -p tsconfig.json && tsc -p src/renderer/tsconfig.json",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm run lint && npm test",
+    "dist": "npm run check && node scripts/build.mjs --release && electron-builder --win --x64",
+    "dist:portable": "npm run check && node scripts/build.mjs --release && electron-builder --win portable --x64"
   },
   "build": {
     "appId": "com.adshield.desktop",
     "productName": "System Monitor",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "!dist/**/*.map",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": ".",
+        "to": ".",
+        "filter": [
+          "api-keys.json",
+          "resume.{txt,md}",
+          "job-description.{txt,md}",
+          "jd.{txt,md}"
+        ]
+      },
+      {
+        "from": "..",
+        "to": ".",
+        "filter": [
+          "api-keys.json",
+          "resume.{txt,md}",
+          "job-description.{txt,md}",
+          "jd.{txt,md}"
+        ]
+      }
+    ],
     "win": {
       "target": [
         {
@@ -25,29 +73,18 @@
     },
     "electronDownload": {
       "mirror": "https://github.com/electron/electron/releases/download/"
-    },
-    "files": [
-      "**/*",
-      "!**/{.git,.gitignore,README.md}"
-    ],
-    "directories": {
-      "output": "dist"
     }
   },
-  "keywords": [
-    "interview",
-    "copilot",
-    "electron"
-  ],
-  "author": "",
-  "license": "MIT",
   "devDependencies": {
-    "electron": "^32.0.0",
-    "electron-builder": "^25.1.8"
-  },
-  "dependencies": {
-    "form-data": "^4.0.6",
-    "node-fetch": "^2.7.0",
-    "ws": "^8.21.0"
+    "@eslint/js": "10.0.1",
+    "@types/node": "20.19.43",
+    "electron": "^32.3.3",
+    "electron-builder": "^25.1.8",
+    "esbuild": "0.28.2",
+    "eslint": "10.13.0",
+    "globals": "17.13.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "4.1.12"
   }
 }

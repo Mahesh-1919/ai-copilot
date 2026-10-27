@@ -1,154 +1,127 @@
-# AdShield Desktop
+# AdShield Desktop ("System Monitor")
 
-Electron-based interview copilot with **screen-share invisibility** via `setContentProtection`.
+Electron interview copilot. A frameless, always-on-top window, excluded from screen capture, listens to speaker audio, transcribes it with Groq Whisper and streams answers from an LLM.
 
-## Key Features
+- **Hidden from screen share.** `setContentProtection(true)` is set on Windows 10 2004+ and macOS.
+- **Speaker audio only.** System loopback via `getDisplayMedia`; the microphone is never captured.
+- **Auto-answer.** Debounced, with heuristics that wait for the speaker to finish the question.
+- **Analyse Screen.** A vision model transcribes the screenshot, then a reasoning model solves it.
+- **Provider fallback** across Cerebras, Gemini and OpenRouter.
+- **Tray app.** No taskbar entry, starts hidden at Windows login, and `Alt+.` shows or hides it.
 
-- ✅ **Invisible during screen share** - uses Electron's `setContentProtection(true)`
-- ✅ **Always-on-top** floating window with stealth "System Monitor" title
-- ✅ **Works across ALL apps** - not limited to browser tabs
-- ✅ **Real-time LLM** (Groq, OpenRouter, OpenAI)
-- ✅ **Automatic audio capture** from system audio via screen share API
-- ✅ **Speech-to-text** (Groq Whisper) with smart VAD
-- ✅ **Manual text input** for testing and in-person interviews
+See [docs/usage.md](docs/usage.md) for day-to-day usage (hotkeys, tray, transparency).
 
-## Quick Start
-
-### 1. Install dependencies
+## Quick start
 
 ```bash
 cd desktop
 npm install
-```
-
-### 2. Configure API keys
-
-Make sure you have `api-keys.json` in the **parent folder** (repo root):
-
-```json
-{
-  "groq": ["gsk_YOUR_KEY_HERE"],
-  "openai": ["sk-YOUR_KEY_HERE"],
-  "openrouter": ["sk-or-v1-YOUR_KEY_HERE"]
-}
-```
-
-### 3. Run the app
-
-```bash
 npm start
 ```
 
-Or with DevTools for debugging:
-
-```bash
-npm run dev
-```
-
-## How to Use
-
-### For Live Calls/Interviews:
-
-1. **Start the app** - Window titled "System Monitor" appears (always on top)
-2. **Join your interview** (Google Meet, Zoom, Teams, phone, etc.)
-3. **Click "Start"** in the System Monitor app
-4. **Grant screen share permission** - When prompted, select:
-   - "Entire Screen" OR
-   - The specific window/tab with your interview audio
-   - Click "Share"
-   - ⚠️ This is just to access system audio - the app won't actually share your screen
-5. **Audio capture begins** - The app now listens to all system audio
-6. **Automatic transcription** - Interviewer's questions appear in the transcript
-7. **Click "Answer Question"** - Get LLM-generated answers in real-time
-8. **Click "Pause"** anytime - Stops audio capture while you type code (interviewer's words won't interfere)
-9. **Click "Resume"** - Restarts audio capture
-10. **Click "Close"** - Ends session and hides window (Alt+. to reopen)
-
-### For Manual Input (Testing):
-
-1. **Start the app** and click "Start"
-2. **Type questions** in the "Manual Input" box
-3. **Press Enter** to send
-4. **Click "Answer Question"** to get response
-
-### Vision Mode (Screen Analysis):
-
-1. **Click "Analyse Screen"** - Captures your screen
-2. **LLM analyzes** visible code/questions
-3. **Provides direct solutions** (not just descriptions)
-
-## Screen-Share Invisibility Test
-
-1. Open the app
-2. Start Google Meet / Zoom / Teams
-3. Share your **entire screen**
-4. Look at the share preview - the System Monitor window should be **invisible or black**
-5. ✅ If invisible: content protection works
-6. ❌ If visible: your Windows version may not support it (requires Windows 10 1703+)
-
-## Current Limitations
-
-### Audio Capture
-**Status:** Manual input only
-
-**Why:** System audio capture on Windows requires:
-- Virtual audio cable (VB-Audio, etc.)
-- OR Windows Audio Session API integration
-- OR using Chrome extension's `tabCapture` (which this doesn't have)
-
-**Workaround:** Use the Chrome extension (`../extension/`) for auto-audio interviews. Use this Electron app for:
-- In-person interviews (type the question)
-- Practice sessions with manual Q&A
-- Cross-app visibility needs
-
-**Future:** Will add mic capture + optional virtual cable support
+Requires Node 20+. `npm start` builds into `dist/` and then launches Electron.
 
 ## Configuration
 
-The app reads from the **root folder** (same as Chrome extension):
+The app reads these files and **reloads them every time you press Start**:
 
-- `../api-keys.json` or `../api-keys.txt` - API keys
-- `../resume.txt` or `../resume.md` - Your resume
-- `../job-description.txt` / `../jd.txt` / `../jd.md` - Target job
+| File | Purpose |
+|------|---------|
+| `api-keys.json` | Provider keys (required) |
+| `resume.txt` / `resume.md` | Used for behavioural / experience answers |
+| `job-description.txt` / `jd.txt` / `jd.md` / `job-description.md` | Target role. Any text after an "Interview Preparation Guide" heading is treated as a high-priority HR guide |
 
-Same files, no duplication!
+Where they're looked up, first match wins:
 
-## Development Status
+- **Development:** `desktop/`, then the repository root.
+- **Packaged build:** the folder containing the `.exe`, then `%APPDATA%\System Monitor\`, then files bundled at build time (any of the files above present in `desktop/` or the repo root when you run `npm run dist`).
 
-- [x] Basic Electron window with setContentProtection
-- [x] Session controls (Start/Stop/Pause/Resume)
-- [x] Manual text input
-- [x] LLM streaming (Groq, OpenAI, OpenRouter)
-- [x] Config loading (API keys, resume, JD)
-- [x] Transcript display
-- [x] Answer rendering
-- [ ] System audio capture (pending Windows audio loopback)
-- [ ] STT (Groq Whisper, AssemblyAI, OpenAI Whisper)
-- [ ] Vision analysis (screenshot + vision model)
-- [ ] Markdown code block rendering
+`api-keys.json`: each value can be a string or an array.
+
+```json
+{
+  "groq":       ["gsk_..."],
+  "cerebras":   ["csk_answers", "csk_screen", "csk_fallback"],
+  "gemini":     ["AIza..."],
+  "openrouter": ["sk-or-v1-..."]
+}
+```
+
+| Key | Used for |
+|-----|----------|
+| `groq[0]` | Whisper speech-to-text (**required** for audio) |
+| `cerebras[0]` | Primary answers (`gpt-oss-120b`) |
+| `cerebras[1]` | Analyse Screen: vision (`gemma-4-31b`) and solving |
+| `cerebras[2]` | Fallback for both of the above |
+| `gemini[0]`, `openrouter[0]` | Last-resort fallbacks for everything |
+
+Model IDs and the fallback order live in [src/main/llm/candidates.ts](src/main/llm/candidates.ts).
+
+## Scripts
+
+| Command | What it does |
+|---------|--------------|
+| `npm start` | Build and run |
+| `npm run dev` | Build and run with DevTools and debug logging |
+| `npm run build:watch` | Rebuild on change. Hide and show the window (`Alt+.`) to relaunch on the new build |
+| `npm run typecheck` | `tsc` for the main/preload and renderer projects |
+| `npm run lint` | ESLint (typescript-eslint) |
+| `npm test` | Vitest unit tests |
+| `npm run check` | All three of the above |
+| `npm run dist` / `dist:portable` | Checks, minified build, then a Windows build with electron-builder into `release/` |
+
+Set `LOG_LEVEL=debug|info|warn|error` to control main-process logging (default `info`, or `debug` with `--dev`).
 
 ## Architecture
 
 ```
 desktop/
-├── main.js              # Main process (window + IPC)
-├── backend.js           # Session state + LLM logic
-├── lib-providers.js     # LLM providers (Groq, OpenAI, OpenRouter)
-├── preload.js           # Context bridge (renderer ↔ main)
-├── renderer/
-│   ├── index.html       # UI
-│   ├── app.js           # Renderer logic
-│   └── styles.css       # Dark UI theme
-└── package.json
+├── src/
+│   ├── shared/
+│   │   └── ipc.ts                 IPC channel names + payload types (single source of truth)
+│   ├── main/                      Electron main process (Node)
+│   │   ├── index.ts               App lifecycle, single-instance lock, wiring
+│   │   ├── app-window.ts          BrowserWindow (content protection, sandbox, hide-to-tray)
+│   │   ├── tray.ts                Tray icon + menu
+│   │   ├── shortcuts.ts           Alt+. toggle, Ctrl+←/→ widen
+│   │   ├── media-permissions.ts   Loopback-only display media, screen capture
+│   │   ├── ipc-handlers.ts        Validated ipcMain handlers → CopilotSession
+│   │   ├── dev-reload.ts          Relaunch on new build (dev only)
+│   │   ├── logger.ts
+│   │   ├── services/
+│   │   │   ├── copilot-session.ts Session state, auto-answer, answer + screen pipelines
+│   │   │   ├── config.ts          Finds and validates api-keys / resume / JD
+│   │   │   ├── prompts.ts         All prompt text
+│   │   │   ├── question-heuristics.ts  "Is the question finished?" + Whisper noise filter
+│   │   │   └── transcription.ts   Groq Whisper client
+│   │   └── llm/
+│   │       ├── providers.ts       Provider factory
+│   │       ├── openai-compatible.ts  Cerebras / Groq / OpenAI / OpenRouter streaming client
+│   │       ├── gemini.ts          Gemini streaming client
+│   │       ├── sse.ts             SSE reader + <think> filter
+│   │       ├── candidates.ts      Model IDs and fallback order
+│   │       └── errors.ts
+│   ├── preload/
+│   │   └── index.ts               contextBridge → window.electronAPI (typed)
+│   └── renderer/                  UI (browser context, no Node)
+│       ├── index.html, styles.css
+│       ├── main.ts                App controller
+│       ├── audio/                 Speaker capture, VAD, WAV encoding, AudioWorklet
+│       ├── lib/markdown.ts        Escaping markdown renderer
+│       └── ui/                    DOM lookup, timer, transparency controls
+├── tests/                         Vitest unit tests
+├── scripts/
+│   ├── build.mjs                  esbuild bundler (main, preload, renderer, worklet)
+│   └── windows/Start-SystemMonitor.vbs   Console-less launcher
+└── docs/usage.md
 ```
 
-## Recommended Workflow
+Data flow: renderer audio → VAD → WAV → `audio:transcribe` IPC → Groq Whisper → transcript → debounced auto-answer → LLM stream → `answer:chunk` events → markdown render.
 
-**For browser-based interviews (Google Meet, Zoom Web):**
-→ Use the **Chrome extension** (`../extension/`) - full auto-audio + STT + LLM
+### Security model
 
-**For multi-app interviews (browser + VSCode + coding platforms):**
-→ Use this **Electron app** - invisible across all apps, manual input
-
-**For in-person / phone interviews:**
-→ Use this **Electron app** - type questions as they're asked
+- The renderer runs with `sandbox`, `contextIsolation` and no Node integration, under a strict CSP. Navigation and new windows are blocked.
+- API keys stay in the main process. The renderer only ever receives a summary of what's configured.
+- Every IPC argument is type- and size-checked before it reaches the session.
+- Model output is HTML-escaped before markdown is applied.
+- The Gemini key is sent in a header, not the URL.

@@ -2,66 +2,117 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>System Monitor</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div id="ic-root">
-    <!-- Header bar (drag here to move window) -->
-    <div class="ic-bar">
-      <div class="ic-logo">📊</div>
-      <div class="ic-name">System Monitor</div>
-      <div class="ic-spacer"></div>
-      <span class="ic-timer" id="ic-timer">00:00</span>
-      <span class="ic-dot" id="ic-dot" title="Session state"></span>
-      <button id="ic-start" class="ic-primary" title="Start session">Start</button>
-      <button id="ic-pause" title="Pause session" hidden>Pause</button>
-      <button id="ic-resume" class="ic-primary" title="Resume session" hidden>Resume</button>
-      <button id="ic-exit" class="ic-danger" title="Close window (Alt+. to reopen)">Close</button>
-      <button id="ic-clear" title="Clear transcript">Clear</button>
-    </div>
-
-    <!-- Action buttons -->
-    <div class="ic-actions">
-      <button id="ic-answer" class="ic-primary" title="Generate answer">Answer Question</button>
-      <button id="ic-analyse" title="Analyse screen">Analyse Screen</button>
-      <span class="ic-spacer" id="ic-status">Inactive</span>
-    </div>
-
-    <!-- Live transcript partial -->
-    <div class="ic-live" id="ic-live"></div>
-
-    <!-- Error messages -->
-    <div class="ic-err" id="ic-err"></div>
-
-    <!-- Answer card -->
-    <div class="ic-card" id="ic-card">
-      <button class="ic-close" id="ic-close" title="Dismiss">&times;</button>
-      <div class="ic-summary" id="ic-summary" data-empty="1">
-        <strong>Question:</strong> <span id="ic-question-text"></span>
+    <!-- Header (drag region) -->
+    <header class="ic-bar">
+      <div class="ic-brand">
+        <div class="ic-logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 12h3l3-7 4 14 3-7h5"/></svg>
+        </div>
+        <div class="ic-name">System Monitor</div>
       </div>
-      <div class="ic-heading" id="ic-heading" data-empty="1">Answer</div>
-      <div class="ic-body" id="ic-body"></div>
-    </div>
 
-    <!-- Manual input (for testing) -->
+      <div class="ic-pill" title="Session state">
+        <span class="ic-dot" id="ic-dot"></span>
+        <span id="ic-status">Inactive</span>
+        <span class="ic-pill-sep"></span>
+        <span class="ic-timer" id="ic-timer">00:00</span>
+      </div>
+
+      <div class="ic-window-actions">
+        <button id="ic-clear" class="ic-icon-btn" title="Clear transcript" aria-label="Clear transcript">
+          <svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+        </button>
+        <button id="ic-exit" class="ic-icon-btn ic-icon-danger" title="Hide window (Alt+. to reopen)" aria-label="Hide window">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Session + action controls -->
+    <section class="ic-actions">
+      <button id="ic-start" class="ic-btn ic-primary" title="Start session">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" class="ic-fill"/></svg>
+        <span>Start</span>
+      </button>
+      <button id="ic-pause" class="ic-btn ic-warn" title="Pause session" hidden>
+        <svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg>
+        <span>Pause</span>
+      </button>
+      <button id="ic-resume" class="ic-btn ic-primary" title="Resume session" hidden>
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" class="ic-fill"/></svg>
+        <span>Resume</span>
+      </button>
+
+      <div class="ic-actions-sep"></div>
+
+      <button id="ic-answer" class="ic-btn" title="Answer the current question">
+        <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+        <span>Answer</span>
+      </button>
+      <button id="ic-analyse" class="ic-btn" title="Analyse what's on screen">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <span>Screen</span>
+      </button>
+    </section>
+
+    <!-- Live transcript -->
+    <section class="ic-live-row">
+      <div class="ic-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="ic-live" id="ic-live"></div>
+    </section>
+
+    <!-- Status / error toast -->
+    <div class="ic-err" id="ic-err" role="status" aria-live="polite"></div>
+
+    <!-- Answer -->
+    <main class="ic-stage">
+      <article class="ic-card" id="ic-card" data-empty="1">
+        <div class="ic-card-head">
+          <div class="ic-summary" id="ic-summary" data-empty="1">
+            <span class="ic-label">Question</span>
+            <span id="ic-question-text"></span>
+          </div>
+          <button class="ic-icon-btn ic-close" id="ic-close" title="Dismiss" aria-label="Dismiss answer">
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <div class="ic-heading" id="ic-heading" data-empty="1">Answer</div>
+        <div class="ic-body" id="ic-body"></div>
+      </article>
+
+      <div class="ic-empty">
+        <div class="ic-empty-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+        </div>
+        <div class="ic-empty-title">Ready when you are</div>
+        <div class="ic-empty-text">Press <b>Start</b> to listen, or type a question below.</div>
+      </div>
+    </main>
+
+    <!-- Composer -->
     <div class="ic-manual">
-      <input type="text" id="ic-manual-input" placeholder="Type a question to test..." />
-      <button id="ic-manual-send" class="ic-primary">Send</button>
+      <input type="text" id="ic-manual-input" placeholder="Ask anything…" autocomplete="off" spellcheck="false" />
+      <button id="ic-manual-send" class="ic-send" type="button" title="Send (Enter)" aria-label="Send">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
     </div>
 
-    <!-- Transparency slider -->
-    <div class="ic-transparency">
-      <label for="ic-opacity-slider">Glass Effect:</label>
+    <!-- Glass control -->
+    <footer class="ic-transparency">
+      <label for="ic-opacity-slider">Glass</label>
       <input type="range" id="ic-opacity-slider" min="0" max="100" value="50" />
       <span id="ic-opacity-value">50%</span>
-      <small style="opacity: 0.6; margin-left: 8px; font-size: 10px;">g+/g-</small>
-    </div>
+      <kbd class="ic-hint" title="Hold G and press + / −">G ±</kbd>
+    </footer>
   </div>
 
-  <script src="audio-manager.js"></script>
-  <script src="app.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>

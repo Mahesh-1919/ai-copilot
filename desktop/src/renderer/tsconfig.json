@@ -1,0 +1,9 @@
+{
+  // Renderer (browser context). No Node types: everything privileged goes through window.electronAPI.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": []
+  },
+  "include": ["./**/*.ts", "../shared/**/*.ts"]
+}

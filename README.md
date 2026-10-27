@@ -139,12 +139,13 @@ interview-copilot/
 │   ├── lib/            Providers, transcribers, storage
 │   └── offscreen.js    Audio capture (tabCapture)
 │
-├── desktop/            Electron app (screen-share invisible)
-│   ├── main.js         Window + setContentProtection
-│   ├── backend.js      Session + LLM logic
-│   ├── lib-providers.js  LLM adapters
-│   ├── renderer/       UI (HTML/CSS/JS)
-│   └── package.json
+├── desktop/            Electron app (TypeScript, screen-share invisible)
+│   ├── src/main/       Main process: window, tray, IPC, session, LLM providers
+│   ├── src/preload/    Typed contextBridge API
+│   ├── src/renderer/   UI, speaker capture + VAD
+│   ├── src/shared/     IPC contract shared by all processes
+│   ├── tests/          Vitest unit tests
+│   └── package.json    See desktop/README.md for scripts
 │
 ├── shared/             Common code (copied from extension/lib)
 │   └── lib/
@@ -169,17 +170,15 @@ interview-copilot/
 - [x] Vision analysis (screenshot → vision model)
 - [x] Markdown code rendering
 
-### Electron Desktop ✅ Core Functional, Audio Pending
+### Electron Desktop ✅ Production Build
 - [x] Window with setContentProtection (invisible during share)
 - [x] Session controls (Start/Stop/Pause/Resume)
-- [x] Manual text input
-- [x] LLM streaming (Groq, OpenAI, OpenRouter)
-- [x] Config loading (keys, resume, JD)
-- [x] Stealth title ("System Monitor")
-- [ ] Auto system audio capture (needs Windows loopback)
-- [ ] STT integration
-- [ ] Vision analysis
-- [ ] Markdown code rendering
+- [x] Speaker loopback capture + VAD → Groq Whisper STT
+- [x] Debounced auto-answer with question-completeness heuristics
+- [x] LLM streaming (Cerebras, Gemini, OpenRouter) with fallback
+- [x] Vision analysis (screenshot → vision model → reasoning model)
+- [x] Markdown code rendering
+- [x] TypeScript (strict), sandboxed renderer, validated IPC, unit tests
 
 ---
 

@@ -1,0 +1,10 @@
+{
+  // Main process, preload, shared code and tests (Node + Electron APIs).
+  // The renderer has its own config in src/renderer/tsconfig.json (DOM APIs).
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"]
+  },
+  "include": ["src/main/**/*.ts", "src/preload/**/*.ts", "src/shared/**/*.ts", "tests/**/*.ts", "vitest.config.mts"]
+}
